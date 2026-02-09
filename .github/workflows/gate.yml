@@ -1,22 +1,23 @@
-name: Lofi Gate
+name: CI
 
 on:
   pull_request:
     branches: [main]
 
 jobs:
-  gate:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          python-version: "3.x"
+          node-version: "20"
+          cache: "npm"
 
-      - name: Install Lofi Gate
-        run: pip install lofi-gate
+      - name: Install Dependencies
+        run: npm ci
 
-      - name: Run Gate Verification
-        run: lofi-gate verify
+      - name: Run Tests
+        run: npm test
