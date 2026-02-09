@@ -1,0 +1,22 @@
+name: Lofi Gate
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install Lofi Gate
+        run: pip install lofi-gate
+
+      - name: Run Gate Verification
+        run: lofi-gate verify

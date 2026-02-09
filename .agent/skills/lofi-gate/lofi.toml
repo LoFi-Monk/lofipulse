@@ -1,0 +1,22 @@
+# LoFi Gate Configuration
+
+[project]
+# The command to run your tests.
+# If empty, LoFi Gate auto-detects based on your files (npm test, cargo test, etc.)
+test_command = ""
+
+[gate]
+# Enforce Test Driven Development? (Block commits without new tests)
+strict_tdd = true
+
+# Fail if linting errors are found?
+lint_check = true
+
+# Fail if security vulnerabilities are found?
+# Fail if security vulnerabilities are found?
+security_check = true
+
+# If true, security failures (npm audit, cargo audit) will break the build.
+# If false, they will be reported but won't fail the verification (exit code 0).
+# Useful for "warn-only" checks.
+security_fail_on_error = true

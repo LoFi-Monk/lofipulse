@@ -137,3 +137,20 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Agent & Lofi Gate
+.agent/logging
+.agent/current-issue.md
+.agent/temp-validation-*.svg
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea
+*.suo
+*.ntvs
+*.njsproj
+*.sln
+*.sw?
