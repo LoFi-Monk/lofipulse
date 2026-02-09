@@ -169,7 +169,11 @@ class TranscriptProcessor:
     @staticmethod
     def format_seconds(seconds: float) -> str:
         """Human-readable time format for the Table of Contents/Headers."""
-        return f"{int(seconds // 60):02d}:{int(seconds % 60):02d}"
+        seconds = int(seconds)
+        if seconds < 3600:
+            return f"{seconds // 60:02d}:{seconds % 60:02d}"
+        else:
+            return f"{seconds // 3600:02d}:{(seconds % 3600) // 60:02d}:{seconds % 60:02d}"
 
     @staticmethod
     def extract_keywords(text: str, count: int = 10) -> List[str]:
@@ -205,11 +209,18 @@ class TranscriptExporter:
             # Interactive headers allow the user to immediately jump to the relevant context.
             content_lines.append(f"### [{b.timestamp}]({jump_url})\n\n{b.text}\n")
 
+        import json
+        
+        # Use json.dumps to ensure proper escaping of quotes for YAML values
+        safe_title_yaml = json.dumps(data.title)
+        safe_channel_yaml = json.dumps(data.channel)
+        safe_url_yaml = json.dumps(data.url)
+        
         markdown = (
             f"---\n"
-            f"title: \"{data.title}\"\n"
-            f"channel: \"{data.channel}\"\n"
-            f"url: \"{data.url}\"\n"
+            f"title: {safe_title_yaml}\n"
+            f"channel: {safe_channel_yaml}\n"
+            f"url: {safe_url_yaml}\n"
             f"keywords: {data.keywords}\n"
             f"---\n\n"
             f"# {data.title}\n\n"
