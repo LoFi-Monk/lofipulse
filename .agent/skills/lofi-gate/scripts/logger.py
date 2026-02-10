@@ -12,12 +12,11 @@ def get_log_path():
     Determines the path to the centralized log file.
     
     Why: The Judge Skill runs inside an isolated environment (scripts dir),
-    but it must write to the same 'verification_history.md' in the Project Root
-    that `lofi_gate.py` uses.
+    but checks need a persistent history file within the skill structure.
     
     Navigation:
     [Root]/.agent/skills/lofi-gate/scripts/logger.py
-    We traverse up 4 levels to find [Root]/
+    We log to ../logs/verification_history.md
     """
     current_dir = os.path.dirname(os.path.abspath(__file__))
     # Log to ../logs/verification_history.md
