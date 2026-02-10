@@ -45,8 +45,10 @@ python .agent/skills/gh-pr-conversation-resolver/scripts/resolve.py --reply "Fix
 
 ### 4. Resolve All (Use with Caution and only when explicitly asked by the user)
 
-**CRITICAL:** ONLY USE THIS IF THE USER SPECIFICALLY ASKS TO RESOLVE ALL THREADS.
-DO NOT USE THIS UNLESS SPECIFICALLY ASKED BY THE USER.
+> [!CAUTION]
+> **DANGEROUS OPERATION.**
+> This command will resolve ALL threads in the PR, including those you may not have read.
+> **ONLY** use this if explicitly requested by the user.
 
 Bulk resolve all open threads (e.g., after a major refactor or when all feedback is addressed).
 
