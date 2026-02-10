@@ -97,14 +97,14 @@ def get_threads(pr_number):
         return []
 
 def resolve_thread(thread_id):
-    query = 'mutation { resolveReviewThread(input: {threadId: "%s"}) { thread { isResolved } } }' % thread_id
+    query = f'mutation {{ resolveReviewThread(input: {{threadId: "{thread_id}"}}) {{ thread {{ isResolved }} }} }}'
     run_graphql_query(query)
     print(f"Resolved thread {thread_id}")
 
 def reply_thread(thread_id, body):
     # Escape body for GraphQL
     safe_body = body.replace('"', '\\"').replace('\n', '\\n')
-    query = 'mutation { addPullRequestReviewThreadReply(input: {pullRequestReviewThreadId: "%s", body: "%s"}) { comment { id body } } }' % (thread_id, safe_body)
+    query = f'mutation {{ addPullRequestReviewThreadReply(input: {{pullRequestReviewThreadId: "{thread_id}", body: "{safe_body}"}}) {{ comment {{ id body }} }} }}'
     output = run_graphql_query(query)
     if output:
         print(f"Replied to thread {thread_id}")

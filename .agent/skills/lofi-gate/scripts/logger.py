@@ -80,7 +80,7 @@ def log_to_history(label, status, message, tokens_used=0, tokens_saved=0, durati
     if len(lines) > SAFE_LOG_LINES:
         lines = lines[-SAFE_LOG_LINES:]
         if not lines[0].startswith("..."):
-                lines.insert(0, f"... (Log truncated to last {SAFE_LOG_LINES} lines) ...\n")
+            lines.insert(0, f"... (Log truncated to last {SAFE_LOG_LINES} lines) ...\n")
 
     # 4. Update Totals
     current_size += tokens_used
