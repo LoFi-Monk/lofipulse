@@ -18,11 +18,11 @@ kanban
     [Fix YouTube Transcript Bugs]@{ ticket: '#9', assigned: 'Lead Developer', priority: 'High' }
     [Configure Secretlint]@{ ticket: '#8', priority: 'High' }
   in-progress
-    [Infra & Gate Cleanup]@{ ticket: '#10', assigned: 'Lead Developer', priority: 'High' }
   blocked
   review
     [Project Init & CI]@{ ticket: '#1', assigned: 'Lead Developer', priority: 'High' }
   done
+    [Infra & Gate Cleanup]@{ ticket: '#10', assigned: 'Lead Developer', priority: 'High' }
     [Fix YouTube Transcript Bugs]@{ ticket: '#9', assigned: 'Lead Developer', priority: 'High' }
     [Setup Repo]
     [Setup Lofi Gate]

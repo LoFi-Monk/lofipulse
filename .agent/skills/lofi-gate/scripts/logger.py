@@ -16,8 +16,8 @@ def get_log_path():
     that `lofi_gate.py` uses.
     
     Navigation:
-    [Root]/lofi-gate/.agent/skills/lofi-gate-judge/scripts/logger.py
-    We traverse up 4 levels to find [Root]/lofi-gate/
+    [Root]/.agent/skills/lofi-gate/scripts/logger.py
+    We traverse up 4 levels to find [Root]/
     """
     current_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.abspath(os.path.join(current_dir, "../../../../"))
@@ -79,8 +79,8 @@ def log_to_history(label, status, message, tokens_used=0, tokens_saved=0, durati
     SAFE_LOG_LINES = MAX_LOG_LINES * 2
     if len(lines) > SAFE_LOG_LINES:
         lines = lines[-SAFE_LOG_LINES:]
-        if not lines[0].startswith("\n..."):
-                lines.insert(0, f"\n... (Log truncated to last {SAFE_LOG_LINES} lines) ...\n")
+        if not lines[0].startswith("..."):
+                lines.insert(0, f"... (Log truncated to last {SAFE_LOG_LINES} lines) ...\n")
 
     # 4. Update Totals
     current_size += tokens_used

@@ -2,7 +2,7 @@
 title: "Test Video"
 channel: "Test Channel"
 url: "https://youtu.be/dQw4w9WgXcQ"
-keywords: ['test']
+keywords: ["test"]
 ---
 
 # Test Video

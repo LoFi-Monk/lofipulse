@@ -200,8 +200,9 @@ class TranscriptExporter:
         os.makedirs(OUTPUT_DIR, exist_ok=True)
         file_path = os.path.join(OUTPUT_DIR, f"{safe_title}.md")
         
-        # Strip existing 't=' parameters to prevent infinite URL nesting
-        base_url = re.sub(r'[&?#]t=.*', '', data.url)
+        # Strip existing 't=' parameters (and only 't=', preserving others if possible)
+        # Using [^&#]* to match until the next parameter or fragment
+        base_url = re.sub(r'[&?#]t=[^&#]*', '', data.url)
 
         content_lines = []
         for b in data.blocks:
@@ -216,13 +217,14 @@ class TranscriptExporter:
         safe_title_yaml = json.dumps(data.title)
         safe_channel_yaml = json.dumps(data.channel)
         safe_url_yaml = json.dumps(data.url)
+        safe_keywords_yaml = json.dumps(data.keywords)
         
         markdown = (
             f"---\n"
             f"title: {safe_title_yaml}\n"
             f"channel: {safe_channel_yaml}\n"
             f"url: {safe_url_yaml}\n"
-            f"keywords: {data.keywords}\n"
+            f"keywords: {safe_keywords_yaml}\n"
             f"---\n\n"
             f"# {data.title}\n\n"
             f"**Channel:** {data.channel}  \n"

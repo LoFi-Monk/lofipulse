@@ -5,7 +5,7 @@ import unittest
 import shutil
 
 # Add the script path to sys.path
-SCRIPT_DIR = os.path.abspath(r"c:\ag-workspace\lofipulse\.agent\skills\youtube-transcript\scripts")
+SCRIPT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.agent', 'skills', 'youtube-transcript', 'scripts'))
 sys.path.append(SCRIPT_DIR)
 
 from get_transcript import TranscriptExporter, TranscriptData, TranscriptBlock

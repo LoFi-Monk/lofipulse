@@ -102,7 +102,7 @@ Record your decision in the official log:
 
 ```bash
 # If Passed
-python .agent/skills/lofi-gate/scripts/logger.py --source "CHECKPOINT" --status "PASS" --message "Approved changes."
+python .agent/skills/lofi-gate/scripts/logger.py --label "CHECKPOINT" --status "PASS" --message "Approved changes."
 
 # If Failed
 python .agent/skills/lofi-gate/scripts/logger.py --source "CHECKPOINT" --status "FAIL" --message "Reason for rejection..."
