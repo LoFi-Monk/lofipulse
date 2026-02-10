@@ -22,6 +22,11 @@ Fetches the current status of the board.
 
 ```powershell
 pwsh -File .agent/skills/gh-projects/scripts/pulse.ps1
+# Output:
+# ID Title          Status   Priority Labels
+# -- -----          ------   -------- ------
+# 12 Spike...       Done     P1       enhancement
+#  2 Monorepo...    Backlog  P1       chore
 ```
 
 ### 2. `add`
