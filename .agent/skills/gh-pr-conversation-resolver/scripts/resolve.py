@@ -160,7 +160,13 @@ def main():
             
             print(f"\nID: {t['id']} {suggestion_icon}")
             print(f"Status: {status}")
-            print(f"File: {t['path']} : {t['line'] or t['originalLine']}")
+            location = t['line']
+            status_flag = ""
+            if location is None:
+                location = t['originalLine']
+                status_flag = " (Outdated)"
+            
+            print(f"File: {t['path']} : {location}{status_flag}")
             print(f"Author: {author}")
             print(f"Content: {body}")
             count += 1
