@@ -76,11 +76,12 @@ if ($field.options) {
     Write-Error "Option '$Value' not found for single-select field '$FieldName'. Available options: $(($field.options.name) -join ', ')." 
     exit 1 
   }
-  $valueInput = "{ singleSelectOptionId: `"$($option.id)`" }"
+  $valueInput = '{"singleSelectOptionId": "' + $option.id + '"}'
 }
 else {
   # Text or Number
-  $valueInput = "{ text: `"$Value`" }"
+  $valueInput = '{"text": "' + $Value + '"}'
+
 }
 
 $mutation = @"
