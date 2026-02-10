@@ -14,9 +14,9 @@ This skill helps you manage Pull Request reviews efficiently by identifying unre
 View all open threads for the current PR (or a specific PR).
 
 ```bash
-python .agent/skills/gh-pr-conversation-resolver/scripts/resolve.py --list
+node .agent/skills/gh-pr-conversation-resolver/scripts/resolve.js --list
 # To specify a PR number
-python .agent/skills/gh-pr-conversation-resolver/scripts/resolve.py --list --pr 7
+node .agent/skills/gh-pr-conversation-resolver/scripts/resolve.js --list --pr 7
 ```
 
 Output format:
@@ -32,7 +32,7 @@ Body: "Comments here..."
 Once you have addressed the feedback, mark the thread as resolved.
 
 ```bash
-python .agent/skills/gh-pr-conversation-resolver/scripts/resolve.py --resolve PRRT_...
+node .agent/skills/gh-pr-conversation-resolver/scripts/resolve.js --resolve PRRT_...
 ```
 
 ### 3. Reply and Resolve
@@ -40,10 +40,20 @@ python .agent/skills/gh-pr-conversation-resolver/scripts/resolve.py --resolve PR
 Reply to the reviewer and resolve the thread in one go.
 
 ```bash
-python .agent/skills/gh-pr-conversation-resolver/scripts/resolve.py --reply "Fixed in 5b9be6d." --resolve PRRT_...
+node .agent/skills/gh-pr-conversation-resolver/scripts/resolve.js --reply "Fixed in 5b9be6d." --resolve PRRT_...
 ```
 
-### 4. Resolve All (Use with Caution and only when explicitly asked by the user)
+### 4. Review All (Recommended for batch processing)
+
+> [!TIP]
+> **Use this command to process all threads in a single execution.**
+> It categorizes threads as BUG, SUGGESTION, or ANALYSIS, auto-resolves confirmations, and reports only actionable items.
+
+```bash
+node .agent/skills/gh-pr-conversation-resolver/scripts/resolve.js --review-all --pr 16
+```
+
+### 5. Resolve All (Use with Caution and only when explicitly asked by the user)
 
 > [!CAUTION]
 > **DANGEROUS OPERATION.**
@@ -53,18 +63,18 @@ python .agent/skills/gh-pr-conversation-resolver/scripts/resolve.py --reply "Fix
 Bulk resolve all open threads (e.g., after a major refactor or when all feedback is addressed).
 
 ```bash
-python .agent/skills/gh-pr-conversation-resolver/scripts/resolve.py --resolve-all
+node .agent/skills/gh-pr-conversation-resolver/scripts/resolve.js --resolve-all
 ```
 
-### 5. Apply a Suggestion
+### 6. Apply a Suggestion
 
 Applies the `suggestion` block from the thread's first comment to the local file.
 
 ```bash
-python .agent/skills/gh-pr-conversation-resolver/scripts/resolve.py --apply "THREAD_ID"
+node .agent/skills/gh-pr-conversation-resolver/scripts/resolve.js --apply "THREAD_ID"
 ```
 
 ## Dependencies
 
 - `gh` CLI (authenticated)
-- Python 3
+- Node.js
