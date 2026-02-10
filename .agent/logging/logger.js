@@ -41,8 +41,8 @@ const getArg = (name) => {
   const index = args.indexOf(name);
   if (index === -1 || index + 1 >= args.length) return null;
   const val = args[index + 1];
-  // If next arg starts with --, it's a flag, not a value
-  return val.startsWith('--') ? null : val;
+  // Return the value regardless of content to support messages starting with --
+  return val;
 };
 
 const skill = getArg('--skill');
