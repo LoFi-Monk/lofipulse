@@ -103,7 +103,7 @@ def resolve_thread(thread_id):
 
 def reply_thread(thread_id, body):
     # Escape body for GraphQL
-    safe_body = body.replace('"', '\\"').replace('\n', '\\n')
+    safe_body = body.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
     query = f'mutation {{ addPullRequestReviewThreadReply(input: {{pullRequestReviewThreadId: "{thread_id}", body: "{safe_body}"}}) {{ comment {{ id body }} }} }}'
     output = run_graphql_query(query)
     if output:
