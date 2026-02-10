@@ -98,7 +98,7 @@ def log_to_history(label, status, message, tokens_used=0, tokens_saved=0, durati
     
     context_str = f"[{command_context}]" if command_context else "[Internal]"
     
-    entry = f"- **[{timestamp}]** {context_str} {icon} **{label}**: {status} {duration_str} {metrics_msg}\n"
+    entry = f"- **[{timestamp}]** {context_str} {icon} **{label}**: {status} {duration_str} {metrics_msg} - {message}\n"
     lines.append(entry)
     
     # 6. Append Error Snippet (HTML Dropdown)

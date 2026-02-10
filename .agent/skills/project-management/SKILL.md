@@ -149,6 +149,20 @@ flowchart TD
     Archive -.-> Validation
 ```
 
+## 4. Code Review Protocol
+
+1. **Devin Review:**
+   - Wait for Devin's review on the PR.
+   - Use `gh-pr-conversation-resolver` to list unresolved threads.
+
+2. **Resolve:**
+   - **Apply Suggestions:** Use `resolve.py --apply "THREAD_ID"` to patch code directly from Devin's reviews.
+   - **Manual Fixes:** If context is missing in the suggestion, fix manually.
+   - **Resolve:** Mark threads as resolved once addressed.
+
+3. **Merge:**
+   - ONLY merge after all threads are resolved and checks pass.
+
 # Resources
 
 - [Our Workflow](./resources/our-workflow.md)
