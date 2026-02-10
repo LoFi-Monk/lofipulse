@@ -50,6 +50,11 @@ const status = getArg('--status');
 const message = getArg('--message');
 const comment = getArg('--comment'); // Optional
 
+if (!skill || !status || !message) {
+  console.error('Error: --skill, --status, and --message are required.');
+  process.exit(1);
+}
+
 // --- 3. CONFIGURATION ---
 // Log location: .agent/logging/skill-logs.md
 // We resolve relative to this script: .agent/logging/logger.js -> ./skill-logs.md
