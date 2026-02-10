@@ -20,41 +20,52 @@ This skill automatically resolves the **Owner**, **Repository**, and **Project N
 
 Fetches the current status of the board.
 
-```powershell
-pwsh -File .agent/skills/gh-projects/scripts/pulse.ps1
+```bash
+node .agent/skills/gh-projects/scripts/projects.js --pulse
 # Output:
-# ID Title          Status   Priority Labels
-# -- -----          ------   -------- ------
-# 12 Spike...       Done     P1       enhancement
-#  2 Monorepo...    Backlog  P1       chore
+# ID  Title                           Status       Priority  Labels
+# --  ------------------------------  -----------  --------  -----------
+# 12  Spike: Advanced GitHub Proj...  In progress            enhancement
+#  2  chore: Monorepo Foundation      Backlog
 ```
 
 ### 2. `add`
 
 Adds an issue or PR to the project.
 
-```powershell
-pwsh -File .agent/skills/gh-projects/scripts/add-item.ps1 -IssueNumber [ID]
+```bash
+node .agent/skills/gh-projects/scripts/projects.js --add 5
 ```
 
 ### 3. `set`
 
-Updates board fields (Status, Priority, Size).
+Updates board fields (Status, Priority, Size, Agent).
 
-```powershell
+```bash
 # Update Status
-pwsh -File .agent/skills/gh-projects/scripts/set-field.ps1 -IssueNumber [ID] -FieldName "Status" -Value "In progress"
+node .agent/skills/gh-projects/scripts/projects.js --set --issue 5 --field "Status" --value "In progress"
 
 # Update Priority (P0, P1, P2)
-pwsh -File .agent/skills/gh-projects/scripts/set-field.ps1 -IssueNumber [ID] -FieldName "Priority" -Value "P1"
+node .agent/skills/gh-projects/scripts/projects.js --set --issue 5 --field "Priority" --value "P1"
+
+# Set Agent
+node .agent/skills/gh-projects/scripts/projects.js --set --issue 5 --field "Agent" --value "Lead Developer"
 ```
 
 ### 4. `link-child`
 
 Natively links a child issue to a parent issue.
 
-```powershell
-pwsh -File .agent/skills/gh-projects/scripts/add-sub-issue.ps1 -ParentIssueNumber [PID] -ChildIssueNumber [CID]
+```bash
+node .agent/skills/gh-projects/scripts/projects.js --link-child --parent 2 --child 13
+```
+
+### 5. `list`
+
+Lists all projects for the current owner.
+
+```bash
+node .agent/skills/gh-projects/scripts/projects.js --list
 ```
 
 ## MANDATORY METADATA
@@ -67,12 +78,6 @@ Every Issue (Epic or Story) MUST have the following 5 fields populated:
 4.  **Size**: `XS`, `S`, `M`, `L`, `XL`.
 5.  **Agent**: The Persona responsible for execution.
     - Options: `CTO`, `Creative Director`, `Lead Developer`, `QA Engineer`, `Librarian`
-
-### Setting the Agent
-
-```powershell
-pwsh -File .agent/skills/gh-projects/scripts/set-field.ps1 -IssueNumber [ID] -FieldName "Agent" -Value "Lead Developer"
-```
 
 ## THE WORKFLOW (HIERARCHY)
 
@@ -96,8 +101,8 @@ All work follows the **Epic/Story/Task Hierarchy**.
 ## PROJECT MANAGER PROTOCOL
 
 - **Decomposition:** Split all features into Parent (Job) and Child (Phase) structures.
-- **Relational Integrity:** Every child MUST be linked to its parent via `add-sub-issue.ps1`.
-- **Board Enrollment:** Only the Parent ID is added to the board via `add-item.ps1`.
+- **Relational Integrity:** Every child MUST be linked to its parent via `--link-child`.
+- **Board Enrollment:** Only the Parent ID is added to the board via `--add`.
 
 ---
 
@@ -106,3 +111,8 @@ All work follows the **Epic/Story/Task Hierarchy**.
 - **Execution:** Your task is defined by the Child Issue ID provided to you.
 - **Inheritance:** Consult the Parent Issue for global constraints.
 - **Closing:** Close the Child Issue immediately upon completion of the atomic phase.
+
+## DEPENDENCIES
+
+- `gh` CLI (authenticated)
+- Node.js
