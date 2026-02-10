@@ -205,7 +205,8 @@ class TranscriptExporter:
 
         content_lines = []
         for b in data.blocks:
-            jump_url = f"{base_url}&t={int(b.start)}s"
+            separator = "&" if "?" in base_url else "?"
+            jump_url = f"{base_url}{separator}t={int(b.start)}s"
             # Interactive headers allow the user to immediately jump to the relevant context.
             content_lines.append(f"### [{b.timestamp}]({jump_url})\n\n{b.text}\n")
 
