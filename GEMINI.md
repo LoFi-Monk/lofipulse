@@ -2,11 +2,11 @@
 
 # Current Focus
 
-We are in **PLANNING** mode (Project Init Complete).
+We are in **EXECUTION** mode (Infrastructure Hardening).
 
-1.  **Context:** PR #7 merged. `main` is protected. TDD is strict.
-2.  **Next:** Decide between **Issue #2 (Monorepo)** or **Issue #8 (Secretlint)**.
-    - _Note:_ Issue #8 is blocked by Husky setup verification.
+1.  **Context:** PR #15 (Agent Skills) is active.
+2.  **Action:** Resolve merge conflicts to unblock PR #15.
+3.  **Next:** Merge PR #15, then start **Issue #2 (Monorepo)**.
 
 # Recent Decisions
 
@@ -28,6 +28,9 @@ We are in **PLANNING** mode (Project Init Complete).
 - [x] **Issue #9:** Fix YouTube Transcript Bugs
 - [x] **Issue #10:** Infra & Gate Cleanup (pnpm)
 - [x] **Issue #11:** GH PR Conversation Resolver Skill
+- [x] **Issue #12:** Advanced GitHub Projects Spike
+- [x] **Issue #13:** EARS Method Skill
+- [x] **Issue #15:** Mandatory Metadata
 
 # Artifacts
 
