@@ -1,36 +1,44 @@
-#
+# Lofi Pulse
 
 # Current Focus
 
-We are in **EXECUTION** mode for **Issue #9: Fix YouTube Transcript Bugs**.
+We are in **EXECUTION** mode (Infrastructure Hardening).
 
-1.  **Context:** PR #1 is blocked by review feedback.
-2.  **Action:** Fix bugs in `get_transcript.py` (Timestamps, Regex, YAML).
-3.  **Next:** Unblock Issue #1.
+1.  **Context:** PR #15 (Agent Skills) is active.
+2.  **Action:** Resolve merge conflicts to unblock PR #15.
+3.  **Next:** Merge PR #15, then start **Issue #2 (Monorepo)**.
 
 # Recent Decisions
 
-- [x] **Trunk-Based Development:** Feature branches merge to `main` via linear `squash`.
-- [x] **Strict TDD:** Lofi Gate must be active (`strict_tdd = true`) before feature code.
-- [x] **No "Dev" Branch:** `main` is protected and deployable.
-- [x] **Project Management:** All work must have a GitHub Issue and be tracked on the Kanban board.
-- [x] **Package Manager:** Standardize on `pnpm` (ADR 0004).
+- [x] **Trunk-Based Development:** Linear history, squash merges.
+- [x] **Strict TDD:** Lofi Gate enabled (`strict_tdd = true`).
+- [x] **Project Management:** All work tracked on Kanban + `task.md`.
+- [x] **Package Manager:** `pnpm` standardized (ADR 0004).
 
 # Backlog
 
-- [ ] **Issue #2:** Monorepo Foundation
+- [ ] **Issue #2:** Monorepo Foundation (High)
 - [ ] **Issue #3:** Config Package
 - [ ] **Issue #4:** Harness Runtime
-- [ ] **Issue #5:** Pi SDK Integration
-- [ ] **Issue #6:** CLI REPL
+- [ ] **Issue #8:** Configure Secretlint (Blocked)
 
 # Completed
+
+- [x] **Issue #1:** Project Init & CI
+- [x] **Issue #9:** Fix YouTube Transcript Bugs
+- [x] **Issue #10:** Infra & Gate Cleanup (pnpm)
+- [x] **Issue #11:** GH PR Conversation Resolver Skill
+- [x] **Issue #12:** Advanced GitHub Projects Spike
+- [x] **Issue #13:** EARS Method Skill
+- [x] **Issue #15:** Mandatory Metadata
 
 # Artifacts
 
 - [Task Board](file:///C:/Users/lofim/.gemini/antigravity/brain/8cb4abb7-604e-41bd-840d-06de299af6a9/task.md)
 - [Implementation Plan](file:///C:/Users/lofim/.gemini/antigravity/brain/8cb4abb7-604e-41bd-840d-06de299af6a9/implementation_plan.md)
 - [Kanban](file:///c:/ag-workspace/lofipulse/.agent/kanban-lofipulse.md)
-- [Current Context (Issue #1)](file:///c:/ag-workspace/lofipulse/.agent/current-issue.md)
 
 # Notes to future self
+
+- **Issue #8 (Secretlint):** HOLD until Husky setup is complete.
+- **Skill Usage:** Use `.agent/skills/gh-pr-conversation-resolver` for PR reviews.

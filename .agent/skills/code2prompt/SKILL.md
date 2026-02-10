@@ -32,6 +32,7 @@ code2prompt . --template .agent/skills/code2prompt/resources/templates/default-t
 The default template (`default-task.hbs`) will prompt you for:
 
 - **`gh_issue_number`**: The GitHub Issue Number (e.g., `123`).
+- **`persona_path`**: Relative path to the persona file (e.g., `.agent/personas/lead-developer.md`).
 - **`instructions_from_pm`**: Specific instructions for the agent.
 
 ## create custom templates

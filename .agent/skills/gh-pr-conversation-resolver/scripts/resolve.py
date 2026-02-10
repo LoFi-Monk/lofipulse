@@ -51,9 +51,16 @@ def get_current_pr():
     return None
 
 def get_threads(pr_number):
-    query = f"""
+    # We can fetch owner/repo name first.
+    repo_info = run_command("gh repo view --json owner,name")
+    if not repo_info: return []
+    repo_json = json.loads(repo_info)
+    owner = repo_json['owner']['login']
+    name = repo_json['name']
+
+    final_query = f"""
     query {{
-      repository(owner: ":owner", name: ":repo") {{
+      repository(owner: "{owner}", name: "{name}") {{
         pullRequest(number: {pr_number}) {{
           reviewThreads(first: 50) {{
             nodes {{
@@ -76,15 +83,6 @@ def get_threads(pr_number):
     }}
     """
     
-    # We can fetch owner/repo name first.
-    repo_info = run_command("gh repo view --json owner,name")
-    if not repo_info: return []
-    repo_json = json.loads(repo_info)
-    owner = repo_json['owner']['login']
-    name = repo_json['name']
-    
-    final_query = query.replace(":owner", owner).replace(":repo", name)
-    
     output = run_graphql_query(final_query)
     if not output: return []
     
@@ -103,7 +101,7 @@ def resolve_thread(thread_id):
 
 def reply_thread(thread_id, body):
     # Escape body for GraphQL
-    safe_body = body.replace('"', '\\"').replace('\n', '\\n')
+    safe_body = body.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
     query = f'mutation {{ addPullRequestReviewThreadReply(input: {{pullRequestReviewThreadId: "{thread_id}", body: "{safe_body}"}}) {{ comment {{ id body }} }} }}'
     output = run_graphql_query(query)
     if output:
