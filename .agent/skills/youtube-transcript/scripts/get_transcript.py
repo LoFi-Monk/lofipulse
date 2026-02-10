@@ -206,7 +206,27 @@ class TranscriptExporter:
         
         # Strip existing 't=' parameters (and only 't=', preserving others if possible)
         # Using [^&#]* to match until the next parameter or fragment
-        base_url = re.sub(r'[&?#]t=[^&#]*', '', data.url)
+        from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+
+        # Robustly strip 't' parameter using parse/unparse
+        parsed = urlparse(data.url)
+        query_params = parse_qs(parsed.query, keep_blank_values=True)
+        if 't' in query_params:
+            del query_params['t']
+        
+        # Determine the correct separator based on the remaining query
+        # If query params exist, use '?'. If not, the base URL is clean.
+        # But wait, we need to reconstruct the FULL url without 't'.
+        # Rebuilding the query string:
+        new_query = urlencode(query_params, doseq=True)
+        base_url = urlunparse((
+            parsed.scheme, 
+            parsed.netloc, 
+            parsed.path, 
+            parsed.params, 
+            new_query, 
+            parsed.fragment
+        ))
 
         content_lines = []
         for b in data.blocks:
