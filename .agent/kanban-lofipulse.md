@@ -9,25 +9,21 @@ config:
 ```mermaid
 kanban
   backlog
-    [Monorepo Foundation]@{ ticket: '#2', priority: 'High' }
-    [Config Package]@{ ticket: '#3', priority: 'High' }
-    [Harness Runtime]@{ ticket: '#4', priority: 'Med' }
-    [Pi SDK Integration]@{ ticket: '#5', priority: 'Med' }
-    [CLI REPL]@{ ticket: '#6', priority: 'Low' }
+    [Config Package]@{ ticket: '#3', priority: 'P1' }
+    [Harness Runtime]@{ ticket: '#4', priority: 'P2' }
+    [Pi SDK Integration]@{ ticket: '#5', priority: 'P2' }
+    [CLI REPL]@{ ticket: '#6', priority: 'P2' }
+    [Setup Turborepo]@{ ticket: '#11', priority: 'P1' }
+    [Configure Secretlint]@{ ticket: '#8', priority: 'P2' }
   review
   done
-    [Project Init & CI]@{ ticket: '#1', assigned: 'Lead Developer', priority: 'High' }
-    [Create GH PR Conversation Resolver Skill]@{ ticket: '#11', assigned: 'Lead Developer', priority: 'High' }
-    [Infra & Gate Cleanup]@{ ticket: '#10', assigned: 'Lead Developer', priority: 'High' }
-    [Fix YouTube Transcript Bugs]@{ ticket: '#9', assigned: 'Lead Developer', priority: 'High' }
-    [Fix YouTube Transcript Bugs]@{ ticket: '#9', assigned: 'Lead Developer', priority: 'High' }
-    [Setup Repo]
-    [Setup Lofi Gate]
-    [Create Project Manager Skill]
-    [Define Team Structure]
+    [Spike: Advanced GitHub Projects Skill]@{ ticket: '#12', assigned: 'Lead Developer', priority: 'P1' }
+    [Monorepo Foundation]@{ ticket: '#2', assigned: 'Lead Developer', priority: 'P1' }
+    [Project Initialization & CI Setup]@{ ticket: '#1', assigned: 'Lead Developer', priority: 'P1' }
   in-progress
-    [Monorepo Foundation]@{ ticket: '#2', priority: 'High', assigned: 'Lead Developer' }
     [Update Personas]
     [Create Runbooks]
   archive
+    [Infra & Gate Cleanup]@{ ticket: '#10', assigned: 'Lead Developer', priority: 'P2' }
+    [Fix YouTube Transcript Bugs]@{ ticket: '#9', assigned: 'Lead Developer', priority: 'P1' }
 ```
