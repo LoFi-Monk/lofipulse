@@ -20,8 +20,9 @@ def get_log_path():
     We traverse up 4 levels to find [Root]/
     """
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.abspath(os.path.join(current_dir, "../../../../"))
-    return os.path.join(project_root, LOG_FILENAME)
+    # Log to ../logs/verification_history.md
+    log_dir = os.path.abspath(os.path.join(current_dir, "../logs"))
+    return os.path.join(log_dir, LOG_FILENAME)
 
 def parse_footer(lines):
     """

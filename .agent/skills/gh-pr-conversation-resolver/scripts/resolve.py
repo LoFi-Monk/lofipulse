@@ -115,6 +115,7 @@ def main():
     parser.add_argument("--resolve", type=str, help="Thread ID to resolve")
     parser.add_argument("--reply", type=str, help="Reply body text")
     parser.add_argument("--thread", type=str, help="Thread ID for reply (required if --reply used)")
+    parser.add_argument("--resolve-all", action="store_true", help="Resolve ALL unresolved threads")
     
     args = parser.parse_args()
     
@@ -152,6 +153,16 @@ def main():
         resolve_thread(args.resolve)
         if args.reply:
             reply_thread(args.resolve, args.reply)
+
+    elif args.resolve_all:
+        threads = get_threads(pr_number)
+        unresolved = [t for t in threads if not t['isResolved']]
+        if not unresolved:
+            print(f"No unresolved threads found for PR #{pr_number}.")
+        else:
+            print(f"Resolving {len(unresolved)} threads...")
+            for t in unresolved:
+                resolve_thread(t['id'])
             
     elif args.reply:
         if not args.thread:

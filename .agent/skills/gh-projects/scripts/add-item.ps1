@@ -1,5 +1,5 @@
 param (
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [int]$IssueNumber,
     [string]$Owner,
     [string]$Repo,
@@ -23,12 +23,7 @@ if (-not $issueInfo) {
 $issueId = $issueInfo.id
 
 # 2. Get Project ID
-$projectInfo = gh project view $ProjectNumber --owner $Owner --format json | ConvertFrom-Json
-if (-not $projectInfo) {
-    Write-Error "Project #$ProjectNumber not found for owner $Owner."
-    exit 1
-}
-$projectId = $projectInfo.id
+$projectId = $meta.projectId
 
 # 3. Add to Project
 $query = @"

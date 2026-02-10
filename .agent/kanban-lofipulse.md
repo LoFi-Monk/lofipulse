@@ -22,7 +22,9 @@ kanban
     [Spike: Advanced GitHub Projects Skill]@{ ticket: '#12', assigned: 'Lead Developer', priority: 'P1' }
     [Monorepo Foundation]@{ ticket: '#2', assigned: 'Lead Developer', priority: 'P1' }
     [Project Initialization & CI Setup]@{ ticket: '#1', assigned: 'Lead Developer', priority: 'P1' }
+  todo
   in-progress
+  blocked
   archive
     [Infra & Gate Cleanup]@{ ticket: '#10', assigned: 'Lead Developer', priority: 'P2' }
     [Fix YouTube Transcript Bugs]@{ ticket: '#9', assigned: 'Lead Developer', priority: 'P1' }

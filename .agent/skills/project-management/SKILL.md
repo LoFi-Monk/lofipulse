@@ -66,13 +66,13 @@ You are responsible for keeping the project's visual status board up to date.
   ```mermaid
   kanban
     backlog
-      [New Idea]@{ ticket: '#1', priority: 'Low' }
+      [New Idea]@{ ticket: '#1', priority: 'P2' }
     todo
-      [Next Up]@{ ticket: '#2', assigned: 'Lead Developer', priority: 'High' }
+      [Next Up]@{ ticket: '#2', assigned: 'Lead Developer', priority: 'P1' }
     in-progress
-      [Active Task]@{ ticket: '#3', assigned: 'Creative Director', priority: 'High' }
+      [Active Task]@{ ticket: '#3', assigned: 'Creative Director', priority: 'P1' }
     blocked
-      [Waiting on User]@{ ticket: '#4', priority: 'High' }
+      [Waiting on User]@{ ticket: '#4', priority: 'P1' }
     review
       [Needs Check]@{ ticket: '#5', assigned: 'Lead QA' }
     done
@@ -83,7 +83,7 @@ You are responsible for keeping the project's visual status board up to date.
 
 - **Metadata Rules:**
   - **Must Assign:** Each card in `todo`, `in-progress`, `review` MUST have an `assigned` field.
-  - **Must Prioritize:** Every card MUST have a `priority` ('High', 'Med', 'Low').
+  - **Must Prioritize:** Every card MUST have a `priority` ('P0', 'P1', 'P2').
   - **Must Link Ticket:** Every card MUST have a `ticket` pointing to the GitHub Issue number (e.g., `'#42'`).
   - **Roles:** Use exact titles from `team.md` (e.g., 'Lead Developer', 'Lead QA', 'Creative Director').
   - **Syntax:** `[Task Name]@{ ticket: '#ID', assigned: 'Role', priority: 'Level' }`

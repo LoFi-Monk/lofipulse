@@ -48,5 +48,5 @@ This option is chosen because it allows for a single, batch query to retrieve al
   - [System Metaphor: The Shepherd (Control Plane)](file:///c:/ag-workspace/lofipulse/.agent/docs/architecture/001-system-metaphor.md)
 
 - Impacted Components:
-  - `.agent/skills/github-projects`
+  - `.agent/skills/gh-projects`
   - `.agent/workflows/pulse`

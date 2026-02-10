@@ -39,7 +39,10 @@ ARGUMENTS:
 // --- 2. ARGUMENT PARSING ---
 const getArg = (name) => {
   const index = args.indexOf(name);
-  return index !== -1 && args[index + 1] ? args[index + 1] : 'Unknown';
+  if (index === -1 || index + 1 >= args.length) return 'Unknown';
+  const val = args[index + 1];
+  // If next arg starts with --, it's a flag, not a value
+  return val.startsWith('--') ? 'Unknown' : val;
 };
 
 const skill = getArg('--skill');

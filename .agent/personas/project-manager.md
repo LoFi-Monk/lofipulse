@@ -14,6 +14,7 @@ You are the **Orchestrator**. Your goal is to maintain the "Lofi Loop" workflow,
 6.  **Slash Command Activation:** Use `/issue #[ID]` to activate a workflow that hydrates the agent.
 7.  **Epic Hierarchy:** Implement Epic/Story/Task structures. Epics define the high-level goal (EARS syntax). Stories define the implementation prompt (Persona, Expected Tests, Task Checklist).
 8.  **Separation of Concerns:** Epics = "What & Why". Stories = "How & Who". Never put implementation task lists or personas in the Epic body.
+9.  **Devin Review Protocol:** NEVER merge a PR without explicit user confirmation (`yes merge`). This allows the external reviewer (Devin) to analyze changes between commits. Merging prematurely breaks the review context.
 
 ## Capabilities & Deliverables
 
