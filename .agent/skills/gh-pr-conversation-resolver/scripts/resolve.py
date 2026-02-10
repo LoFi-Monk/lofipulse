@@ -68,6 +68,7 @@ def get_threads(pr_number):
               isResolved
               path
               line
+              startLine
               originalLine
               comments(first: 1) {{
                 nodes {{
@@ -116,6 +117,7 @@ def main():
     parser.add_argument("--reply", type=str, help="Reply body text")
     parser.add_argument("--thread", type=str, help="Thread ID for reply (required if --reply used)")
     parser.add_argument("--resolve-all", action="store_true", help="Resolve ALL unresolved threads")
+    parser.add_argument("--apply", type=str, help="Thread ID to apply suggestion from")
     
     args = parser.parse_args()
     
@@ -137,9 +139,14 @@ def main():
             first_comment = comments[0] if comments else None
             author = first_comment['author']['login'] if first_comment else "Unknown"
             body = first_comment['body'].replace('\n', ' ') if first_comment else ""
+            
+            # Check for suggestion
+            has_suggestion = "```suggestion" in (first_comment['body'] if first_comment else "")
+            suggestion_icon = "💡" if has_suggestion else " "
+            
             if len(body) > 100: body = body[:97] + "..."
             
-            print(f"\nID: {t['id']}")
+            print(f"\nID: {t['id']} {suggestion_icon}")
             print(f"Status: {status}")
             print(f"File: {t['path']} : {t['line'] or t['originalLine']}")
             print(f"Author: {author}")
@@ -163,7 +170,77 @@ def main():
             print(f"Resolving {len(unresolved)} threads...")
             for t in unresolved:
                 resolve_thread(t['id'])
+
+    elif args.apply:
+        threads = get_threads(pr_number)
+        target = next((t for t in threads if t['id'] == args.apply), None)
+        if not target:
+            print(f"Thread {args.apply} not found.")
+            sys.exit(1)
             
+        comments = target['comments']['nodes']
+        if not comments:
+            print("No comments in thread.")
+            sys.exit(1)
+            
+        body = comments[0]['body']
+        if "```suggestion" not in body:
+            print("No suggestion block found in this comment.")
+            sys.exit(1)
+            
+        lines = body.split('\n')
+        suggestion_lines = []
+        in_block = False
+        for line in lines:
+            if line.strip().startswith("```suggestion"):
+                in_block = True
+                continue
+            if in_block and line.strip().startswith("```"):
+                in_block = False
+                break
+            if in_block:
+                suggestion_lines.append(line)
+        
+        file_path = target['path']
+        start_line = target.get('startLine')
+        end_line = target.get('line')
+        
+        if not end_line:
+            print("Could not determine line number from thread.")
+            sys.exit(1)
+            
+        if start_line is None:
+            start_line = end_line
+            
+        print(f"Applying suggestion to {file_path} lines {start_line}-{end_line}...")
+        
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.readlines()
+                
+            # Convert 1-based indexing to 0-based
+            # start_line is inclusive, end_line is inclusive
+            start_idx = start_line - 1
+            end_idx = end_line
+            
+            # Replace lines
+            pre = content[:start_idx]
+            post = content[end_idx:]
+            
+            # Ensure suggestion lines end with newlines if needed
+            new_content = [l + '\n' if not l.endswith('\n') else l for l in suggestion_lines]
+            
+            final_content = pre + new_content + post
+            
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.writelines(final_content)
+                
+            print("Successfully applied suggestion.")
+            
+        except Exception as e:
+            print(f"Error applying suggestion: {e}")
+            sys.exit(1)
+
     elif args.reply:
         if not args.thread:
             print("Error: --thread ID required for reply.")
