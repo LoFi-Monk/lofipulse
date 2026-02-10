@@ -39,10 +39,10 @@ ARGUMENTS:
 // --- 2. ARGUMENT PARSING ---
 const getArg = (name) => {
   const index = args.indexOf(name);
-  if (index === -1 || index + 1 >= args.length) return 'Unknown';
+  if (index === -1 || index + 1 >= args.length) return null;
   const val = args[index + 1];
   // If next arg starts with --, it's a flag, not a value
-  return val.startsWith('--') ? 'Unknown' : val;
+  return val.startsWith('--') ? null : val;
 };
 
 const skill = getArg('--skill');
@@ -70,7 +70,7 @@ const safe = (str) => (str || '').replace(/\|/g, '\\|').replace(/\n/g, ' ');
 const safeSkill = safe(skill);
 const safeStatus = safe(status);
 const safeMessage = safe(message);
-const safeComment = comment === 'Unknown' ? '' : safe(comment); // Keep empty if not provided
+const safeComment = comment === null ? '' : safe(comment); // Keep empty if not provided
 
 // --- 5. LOGGING ---
 const HEADER_LINE = '| Timestamp | Skill | Status | Message | Comment |';
