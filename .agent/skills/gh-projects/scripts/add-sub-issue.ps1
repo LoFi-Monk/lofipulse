@@ -1,5 +1,7 @@
 param (
+  [Parameter(Mandatory = $true)]
   [int]$ParentIssueNumber,
+  [Parameter(Mandatory = $true)]
   [int]$ChildIssueNumber,
   [string]$Owner,
   [string]$Repo
@@ -15,13 +17,11 @@ if (-not $Repo) { $Repo = $meta.repo }
 $parentInfo = gh issue view $ParentIssueNumber --repo "$Owner/$Repo" --json id | ConvertFrom-Json
 $childInfo = gh issue view $ChildIssueNumber --repo "$Owner/$Repo" --json id | ConvertFrom-Json
 
+if (-not $parentInfo) { Write-Error "Parent Issue #$ParentIssueNumber not found."; exit 1 }
+if (-not $childInfo) { Write-Error "Child Issue #$ChildIssueNumber not found."; exit 1 }
+
 $parentId = $parentInfo.id
 $childId = $childInfo.id
-
-if (-not $parentId -or -not $childId) {
-  Write-Error "Could not find one or both issues."
-  exit 1
-}
 
 # 2. Add Sub-issue via GraphQL
 $mutation = @"
@@ -41,5 +41,6 @@ if ($result.data.addSubIssue.issue.id) {
   Write-Host "Successfully linked Issue #$ChildIssueNumber as a sub-issue of #$ParentIssueNumber"
 }
 else {
-  Write-Error "Failed to link sub-issue."
+  Write-Error "Failed to link sub-issue. GraphQL Error: $($result.errors.message)"
+  exit 1
 }

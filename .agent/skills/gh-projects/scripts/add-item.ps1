@@ -1,8 +1,9 @@
 param (
-  [int]$IssueNumber,
-  [string]$Owner,
-  [string]$Repo,
-  [int]$ProjectNumber
+    [Parameter(Mandatory=$true)]
+    [int]$IssueNumber,
+    [string]$Owner,
+    [string]$Repo,
+    [int]$ProjectNumber
 )
 
 . "$PSScriptRoot/config.ps1"
@@ -15,10 +16,18 @@ if (-not $ProjectNumber) { $ProjectNumber = $meta.projectNumber }
 
 # 1. Get Issue ID
 $issueInfo = gh issue view $IssueNumber --repo "$Owner/$Repo" --json id | ConvertFrom-Json
+if (-not $issueInfo) {
+    Write-Error "Issue #$IssueNumber not found in $Owner/$Repo."
+    exit 1
+}
 $issueId = $issueInfo.id
 
 # 2. Get Project ID
 $projectInfo = gh project view $ProjectNumber --owner $Owner --format json | ConvertFrom-Json
+if (-not $projectInfo) {
+    Write-Error "Project #$ProjectNumber not found for owner $Owner."
+    exit 1
+}
 $projectId = $projectInfo.id
 
 # 3. Add to Project
@@ -32,8 +41,9 @@ mutation(`$projectId: ID!, `$contentId: ID!) {
 
 $result = gh api graphql -f projectId=$projectId -f contentId=$issueId -f query=$query | ConvertFrom-Json
 if ($result.data.addProjectV2ItemById.item.id) {
-  Write-Host "Successfully added Issue #$IssueNumber to Project #$ProjectNumber ($($meta.owner)/$($meta.repo))"
+    Write-Host "Successfully added Issue #$IssueNumber to Project #$ProjectNumber ($($meta.owner)/$($meta.repo))"
 }
 else {
-  Write-Error "Failed to add item."
+    Write-Error "Failed to add item. GraphQL Error: $($result.errors.message)"
+    exit 1
 }
