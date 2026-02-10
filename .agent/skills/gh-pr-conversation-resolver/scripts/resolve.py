@@ -51,6 +51,13 @@ def get_current_pr():
     return None
 
 def get_threads(pr_number):
+    # We can fetch owner/repo name first.
+    repo_info = run_command("gh repo view --json owner,name")
+    if not repo_info: return []
+    repo_json = json.loads(repo_info)
+    owner = repo_json['owner']['login']
+    name = repo_json['name']
+
     final_query = f"""
     query {{
       repository(owner: "{owner}", name: "{name}") {{
