@@ -1,8 +1,6 @@
-# LoFiPulse
+# LoFiPulse (WIP)
 
-An orchestration and monitoring of AI agents and their vessels. (WIP)
-
----
+## An orchestration and monitoring of AI agents and their vessels.
 
 repo: https://github.com/LoFi-Monk/lofipulse
 
