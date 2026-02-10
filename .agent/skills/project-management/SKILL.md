@@ -108,7 +108,7 @@ After ANY edit to the Kanban board, you **MUST** run the `mermaid-validator` ski
 2.  Move `[Setup Repo]` to `done`.
 3.  Check `in-progress` is empty.
 4.  Move `[Setup Lofi Gate]` from `todo` to `in-progress`.
-5.  Add metadata: `[Setup Lofi Gate]@{ ticket: '#123', assigned: 'Lead QA', priority: 'High' }`
+5.  Add metadata: `[Setup Lofi Gate]@{ ticket: '#123', assigned: 'Lead QA', priority: 'P1' }`
 6.  **Run `code2prompt` skill** to generate context for Issue #123.
     - `gh_issue_number`: Enter `123`.
     - `instructions_from_pm`: Enter "Setup Lofi Gate per docs".
