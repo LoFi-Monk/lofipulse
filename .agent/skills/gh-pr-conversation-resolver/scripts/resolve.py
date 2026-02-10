@@ -213,6 +213,14 @@ def main():
             if in_block:
                 suggestion_lines.append(line)
         
+        if in_block:
+            print("Error: Malformed suggestion block (missing closing fence).")
+            sys.exit(1)
+        
+        if not suggestion_lines:
+            print("Error: Empty suggestion block found.")
+            sys.exit(1)
+        
         file_path = target['path']
         start_line = target.get('startLine')
         end_line = target.get('line')
