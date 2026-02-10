@@ -1,0 +1,21 @@
+path = "."
+absolute_paths = false
+full_directory_tree = true
+diff_enabled = false
+default_output = "file"
+include_patterns = ["**/*"]
+exclude_patterns = [
+    ".git/**", 
+    "node_modules/**", 
+    "dist/**", 
+    ".agent/current-*", 
+    ".agent/temp-*",
+    "package-lock.json",
+    "pnpm-lock.yaml"
+]
+line_numbers = true
+output_format = "markdown"
+
+[user_variables]
+project_name = "LofiPulse"
+author = "Lofi Monk"
