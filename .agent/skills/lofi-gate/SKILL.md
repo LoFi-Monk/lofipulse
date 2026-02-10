@@ -1,5 +1,5 @@
 ---
-name: lofi-gate-checkpoint
+name: lofi-gate
 description: Tests passing? STOP. REQUIRED before committing. Verifies you didn't cheat and stayed within scope.
 ---
 
@@ -7,7 +7,8 @@ description: Tests passing? STOP. REQUIRED before committing. Verifies you didn'
 
 > [!CAUTION]
 > **MANDATORY CHECKPOINT.** You cannot commit until this skill approves your changes.
-> Skipping this step will result in rejection at the Gate.
+>
+> > Skipping this step will result in rejection at the Gate.
 
 You have completed coding and tests are passing. Now you must judge your own work before declaring victory.
 
@@ -101,8 +102,8 @@ Record your decision in the official log:
 
 ```bash
 # If Passed
-python .agent/skills/lofi-gate-checkpoint/scripts/logger.py --source "CHECKPOINT" --status "PASS" --message "Approved changes."
+python .agent/skills/lofi-gate/scripts/logger.py --source "CHECKPOINT" --status "PASS" --message "Approved changes."
 
 # If Failed
-python .agent/skills/lofi-gate-checkpoint/scripts/logger.py --source "CHECKPOINT" --status "FAIL" --message "Reason for rejection..."
+python .agent/skills/lofi-gate/scripts/logger.py --source "CHECKPOINT" --status "FAIL" --message "Reason for rejection..."
 ```

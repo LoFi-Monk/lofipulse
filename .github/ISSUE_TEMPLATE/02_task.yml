@@ -1,0 +1,32 @@
+name: Task / Chore
+description: A technical task, maintenance work, or refactor.
+title: "chore: "
+labels: ["chore"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: "What needs to be done?"
+      placeholder: "Update dependencies..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: todo
+    attributes:
+      label: Todo List
+      description: "Break it down."
+      placeholder: |
+        - [ ] Step 1
+        - [ ] Step 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: "Why are we doing this?"
+    validations:
+      required: false

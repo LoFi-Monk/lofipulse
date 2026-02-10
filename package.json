@@ -2,6 +2,7 @@
   "name": "lofipulse",
   "version": "1.0.0",
   "description": "LoFiPulse (WIP)",
+  "packageManager": "pnpm@10.28.0",
   "main": "index.js",
   "scripts": {
     "test": "vitest run",

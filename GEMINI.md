@@ -2,11 +2,11 @@
 
 # Current Focus
 
-We are in **EXECUTION** mode for **Issue #1: Project Initialization & CI Setup**.
+We are in **EXECUTION** mode for **Issue #9: Fix YouTube Transcript Bugs**.
 
-1.  **Initialize Node.js** (`npm init`).
-2.  **Install Dependencies** (`typescript`, `vitest`, `biome`, `husky`, `lofi-gate`).
-3.  **Setup CI Workflow** (`.github/workflows/gate.yml`).
+1.  **Context:** PR #1 is blocked by review feedback.
+2.  **Action:** Fix bugs in `get_transcript.py` (Timestamps, Regex, YAML).
+3.  **Next:** Unblock Issue #1.
 
 # Recent Decisions
 
@@ -14,6 +14,7 @@ We are in **EXECUTION** mode for **Issue #1: Project Initialization & CI Setup**
 - [x] **Strict TDD:** Lofi Gate must be active (`strict_tdd = true`) before feature code.
 - [x] **No "Dev" Branch:** `main` is protected and deployable.
 - [x] **Project Management:** All work must have a GitHub Issue and be tracked on the Kanban board.
+- [x] **Package Manager:** Standardize on `pnpm` (ADR 0004).
 
 # Backlog
 

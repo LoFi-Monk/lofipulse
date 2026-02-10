@@ -15,11 +15,15 @@ kanban
     [Pi SDK Integration]@{ ticket: '#5', priority: 'Med' }
     [CLI REPL]@{ ticket: '#6', priority: 'Low' }
   todo
+    [Fix YouTube Transcript Bugs]@{ ticket: '#9', assigned: 'Lead Developer', priority: 'High' }
+    [Configure Secretlint]@{ ticket: '#8', priority: 'High' }
   in-progress
-    [Project Init & CI]@{ ticket: '#1', assigned: 'Lead Developer', priority: 'High' }
+    [Infra & Gate Cleanup]@{ ticket: '#10', assigned: 'Lead Developer', priority: 'High' }
   blocked
   review
+    [Project Init & CI]@{ ticket: '#1', assigned: 'Lead Developer', priority: 'High' }
   done
+    [Fix YouTube Transcript Bugs]@{ ticket: '#9', assigned: 'Lead Developer', priority: 'High' }
     [Setup Repo]
     [Setup Lofi Gate]
     [Create Project Manager Skill]
