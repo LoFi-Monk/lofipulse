@@ -20,7 +20,18 @@ def run_graphql_query(query):
         cmd = f'gh api graphql -F query=@"{tmp_path}"'
         # Force utf-8 encoding to handle emojis and special chars from GitHub CLI
         result = subprocess.run(cmd, shell=True, check=True, capture_output=True, encoding='utf-8', errors='replace')
-        return result.stdout.strip()
+        output = result.stdout.strip()
+        
+        # Check for GraphQL errors
+        try:
+            data = json.loads(output)
+            if 'errors' in data:
+                print(f"GraphQL Error: {json.dumps(data['errors'], indent=2)}")
+                return None
+        except json.JSONDecodeError:
+            pass # Let caller handle or just return raw output
+            
+        return output
     except subprocess.CalledProcessError as e:
         print(f"Error executing GraphQL query: {e.stderr}")
         return None
@@ -97,8 +108,9 @@ def get_threads(pr_number):
 
 def resolve_thread(thread_id):
     query = f'mutation {{ resolveReviewThread(input: {{threadId: "{thread_id}"}}) {{ thread {{ isResolved }} }} }}'
-    run_graphql_query(query)
-    print(f"Resolved thread {thread_id}")
+    result = run_graphql_query(query)
+    if result:
+        print(f"Resolved thread {thread_id}")
 
 def reply_thread(thread_id, body):
     # Escape body for GraphQL
