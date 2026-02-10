@@ -197,6 +197,10 @@ class TranscriptExporter:
         - Human-readable Body: For the developer to read/scan.
         """
         safe_title = FILENAME_SAFE_REGEX.sub('', data.title).strip()[:200]
+        if not safe_title:
+             match = VIDEO_ID_REGEX.search(data.url)
+             vid_id = match.group(1) if match else "unknown"
+             safe_title = f"transcript_{vid_id}"
         os.makedirs(OUTPUT_DIR, exist_ok=True)
         file_path = os.path.join(OUTPUT_DIR, f"{safe_title}.md")
         
