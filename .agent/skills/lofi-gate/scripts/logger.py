@@ -16,12 +16,11 @@ def get_log_path():
     
     Navigation:
     [Root]/.agent/skills/lofi-gate/scripts/logger.py
-    We log to ../logs/verification_history.md
+    We traverse up 4 levels to find [Root]/
     """
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    # Log to ../logs/verification_history.md
-    log_dir = os.path.abspath(os.path.join(current_dir, "../logs"))
-    return os.path.join(log_dir, LOG_FILENAME)
+    project_root = os.path.abspath(os.path.join(current_dir, "../../../../"))
+    return os.path.join(project_root, LOG_FILENAME)
 
 def parse_footer(lines):
     """

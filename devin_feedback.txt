@@ -1,0 +1,23 @@
+<!-- devin-review-comment {"id": "ANALYSIS_pr-review-job-0621683c0b354738875242c09e915ff1_0004", "file_path": ".agent/skills/gh-pr-conversation-resolver/scripts/resolve.py", "start_line": 221, "end_line": 228, "side": "RIGHT"} -->
+
+📝 **Info: The `--apply` suggestion feature correctly handles both single-line and multi-line review threads**
+
+The line replacement logic at lines 221-228 converts GitHub's 1-based inclusive line range to Python's 0-based exclusive slicing:
+- `start_idx = start_line - 1` (0-based start, inclusive)
+- `end_idx = end_line` (1-based end_line equals 0-based exclusive upper bound)
+- `pre = content[:start_idx]` captures everything before the replacement range
+- `post = content[end_idx:]` captures everything after
+
+For single-line comments where `startLine` is `null` (from the GitHub API), line 212-213 correctly sets `start_line = end_line`, resulting in exactly one line being replaced (`content[end_line-1:end_line]`). This logic is correct. One caveat: the `line` and `startLine` values from the API refer to the diff's new-file line numbers, so if the file has been modified locally since the PR was created, the suggestion may be applied to the wrong lines — but this is an inherent limitation shared with GitHub's own suggestion feature.
+
+<!-- devin-review-badge-begin -->
+<a href="https://app.devin.ai/review/lofi-monk/lofipulse/pull/16" target="_blank">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://static.devin.ai/assets/gh-open-in-devin-review-dark.svg?v=1">
+    <img src="https://static.devin.ai/assets/gh-open-in-devin-review-light.svg?v=1" alt="Open in Devin Review">
+  </picture>
+</a>
+<!-- devin-review-badge-end -->
+
+---
+*Was this helpful? React with 👍 or 👎 to provide feedback.*
