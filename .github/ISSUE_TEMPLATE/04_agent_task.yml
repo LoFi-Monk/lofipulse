@@ -1,0 +1,51 @@
+name: Agent Task
+description: A task specifically for an AI Agent to implement.
+title: "feat: "
+labels: ["agent-task"]
+body:
+  - type: input
+    id: persona
+    attributes:
+      label: Assigned Persona
+      description: "Which agent persona should handle this? (e.g., [Lead Developer], [Lead QA])"
+      placeholder: "[Lead Developer]"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Objective
+      description: "Clearly state the goal of this task."
+    validations:
+      required: true
+
+  - type: textarea
+    id: tests
+    attributes:
+      label: Expected Tests
+      description: "MANDATORY: Define the tests that must pass for this to be done."
+      placeholder: |
+        - [ ] Test 1: ...
+        - [ ] Test 2: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical_constraints
+    attributes:
+      label: Technical Constraints
+      description: "Include any specific libraries, patterns, or forbidden approaches."
+    validations:
+      required: false
+
+  - type: textarea
+    id: subtasks
+    attributes:
+      label: Task List (Sub-Issues)
+      description: "Break the implementation into checkable steps."
+      placeholder: |
+        - [ ] Step 1
+        - [ ] Step 2
+    validations:
+      required: false
