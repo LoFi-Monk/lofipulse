@@ -39,13 +39,21 @@ ARGUMENTS:
 // --- 2. ARGUMENT PARSING ---
 const getArg = (name) => {
   const index = args.indexOf(name);
-  return index !== -1 && args[index + 1] ? args[index + 1] : 'Unknown';
+  if (index === -1 || index + 1 >= args.length) return null;
+  const val = args[index + 1];
+  // Return the value regardless of content to support messages starting with --
+  return val;
 };
 
 const skill = getArg('--skill');
 const status = getArg('--status');
 const message = getArg('--message');
 const comment = getArg('--comment'); // Optional
+
+if (!skill || !status || !message) {
+  console.error('Error: --skill, --status, and --message are required.');
+  process.exit(1);
+}
 
 // --- 3. CONFIGURATION ---
 // Log location: .agent/logging/skill-logs.md
@@ -67,7 +75,7 @@ const safe = (str) => (str || '').replace(/\|/g, '\\|').replace(/\n/g, ' ');
 const safeSkill = safe(skill);
 const safeStatus = safe(status);
 const safeMessage = safe(message);
-const safeComment = comment === 'Unknown' ? '' : safe(comment); // Keep empty if not provided
+const safeComment = comment === null ? '' : safe(comment); // Keep empty if not provided
 
 // --- 5. LOGGING ---
 const HEADER_LINE = '| Timestamp | Skill | Status | Message | Comment |';

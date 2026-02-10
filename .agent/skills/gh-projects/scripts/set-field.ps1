@@ -1,12 +1,12 @@
 param (
-    [Parameter(Mandatory=$true)]
-    [int]$IssueNumber,
-    [Parameter(Mandatory=$true)]
-    [string]$FieldName,
-    [Parameter(Mandatory=$true)]
-    [string]$Value,
-    [string]$Owner,
-    [int]$ProjectNumber
+  [Parameter(Mandatory = $true)]
+  [int]$IssueNumber,
+  [Parameter(Mandatory = $true)]
+  [string]$FieldName,
+  [Parameter(Mandatory = $true)]
+  [string]$Value,
+  [string]$Owner,
+  [int]$ProjectNumber
 )
 
 . "$PSScriptRoot/config.ps1"
@@ -45,8 +45,8 @@ query(`$owner: String!, `$number: Int!) {
 
 $response = gh api graphql -f owner=$Owner -F number=$ProjectNumber -f query=$queryGetItem | ConvertFrom-Json
 if (-not $response.data.user.projectV2) {
-    Write-Error "Project #$ProjectNumber not found or not accessible."
-    exit 1
+  Write-Error "Project #$ProjectNumber not found or not accessible."
+  exit 1
 }
 
 $projectData = $response.data.user.projectV2
@@ -55,31 +55,33 @@ $projectId = $projectData.id
 # Find the specific item ID
 $item = $projectData.items.nodes | Where-Object { $_.content.number -eq $IssueNumber }
 if (-not $item) {
-    Write-Error "Issue #$IssueNumber not found on the board. Add it first using add-item.ps1."
-    exit 1
+  Write-Error "Issue #$IssueNumber not found on the board. Add it first using add-item.ps1."
+  exit 1
 }
 $itemId = $item.id
 
 # Find the field
 $field = $projectData.fields.nodes | Where-Object { $_.name -eq $FieldName }
 if (-not $field) { 
-    Write-Error "Field '$FieldName' not found available fields: $(($projectData.fields.nodes.name) -join ', ')."
-    exit 1 
+  Write-Error "Field '$FieldName' not found available fields: $(($projectData.fields.nodes.name) -join ', ')."
+  exit 1 
 }
 
 # 2. Construct the Mutuation based on field type
 $valueInput = @{}
 if ($field.options) {
-    # Single Select
-    $option = $field.options | Where-Object { $_.name -eq $Value }
-    if (-not $option) { 
-        Write-Error "Option '$Value' not found for single-select field '$FieldName'. Available options: $(($field.options.name) -join ', ')." 
-        exit 1 
-    }
-    $valueInput = "{ singleSelectOptionId: `"$($option.id)`" }"
-} else {
-    # Text or Number
-    $valueInput = "{ text: `"$Value`" }"
+  # Single Select
+  $option = $field.options | Where-Object { $_.name -eq $Value }
+  if (-not $option) { 
+    Write-Error "Option '$Value' not found for single-select field '$FieldName'. Available options: $(($field.options.name) -join ', ')." 
+    exit 1 
+  }
+  $valueInput = '{"singleSelectOptionId": "' + $option.id + '"}'
+}
+else {
+  # Text or Number
+  $valueInput = '{"text": "' + $Value + '"}'
+
 }
 
 $mutation = @"
@@ -95,11 +97,12 @@ mutation(`$projectId: ID!, `$itemId: ID!, `$fieldId: ID!, `$value: ProjectV2Prop
 }
 "@
 
-$result = gh api graphql -f projectId=$projectId -f itemId=$itemId -f fieldId=$field.id -f value=$valueInput -f query=$mutation | ConvertFrom-Json
+$result = gh api graphql -f projectId=$projectId -f itemId=$itemId -f fieldId=$field.id -F value=$valueInput -f query=$mutation | ConvertFrom-Json
 
 if ($result.data.updateProjectV2ItemFieldValue.projectV2Item.id) {
-    Write-Host "Successfully set $FieldName to '$Value' for Issue #$IssueNumber"
-} else {
-    Write-Error "Failed to update field. GraphQL Error: $($result.errors.message)"
-    exit 1
+  Write-Host "Successfully set $FieldName to '$Value' for Issue #$IssueNumber"
+}
+else {
+  Write-Error "Failed to update field. GraphQL Error: $($result.errors.message)"
+  exit 1
 }

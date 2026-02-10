@@ -56,6 +56,14 @@ Bulk resolve all open threads (e.g., after a major refactor or when all feedback
 python .agent/skills/gh-pr-conversation-resolver/scripts/resolve.py --resolve-all
 ```
 
+### 5. Apply a Suggestion
+
+Applies the `suggestion` block from the thread's first comment to the local file.
+
+```bash
+python .agent/skills/gh-pr-conversation-resolver/scripts/resolve.py --apply "THREAD_ID"
+```
+
 ## Dependencies
 
 - `gh` CLI (authenticated)

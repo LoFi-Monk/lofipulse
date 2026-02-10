@@ -105,5 +105,5 @@ Record your decision in the official log:
 python .agent/skills/lofi-gate/scripts/logger.py --label "CHECKPOINT" --status "PASS" --message "Approved changes."
 
 # If Failed
-python .agent/skills/lofi-gate/scripts/logger.py --source "CHECKPOINT" --status "FAIL" --message "Reason for rejection..."
+python .agent/skills/lofi-gate/scripts/logger.py --label "CHECKPOINT" --status "FAIL" --message "Reason for rejection..."
 ```

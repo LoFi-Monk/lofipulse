@@ -66,13 +66,13 @@ You are responsible for keeping the project's visual status board up to date.
   ```mermaid
   kanban
     backlog
-      [New Idea]@{ ticket: '#1', priority: 'Low' }
+      [New Idea]@{ ticket: '#1', priority: 'P2' }
     todo
-      [Next Up]@{ ticket: '#2', assigned: 'Lead Developer', priority: 'High' }
+      [Next Up]@{ ticket: '#2', assigned: 'Lead Developer', priority: 'P1' }
     in-progress
-      [Active Task]@{ ticket: '#3', assigned: 'Creative Director', priority: 'High' }
+      [Active Task]@{ ticket: '#3', assigned: 'Creative Director', priority: 'P1' }
     blocked
-      [Waiting on User]@{ ticket: '#4', priority: 'High' }
+      [Waiting on User]@{ ticket: '#4', priority: 'P1' }
     review
       [Needs Check]@{ ticket: '#5', assigned: 'Lead QA' }
     done
@@ -83,7 +83,7 @@ You are responsible for keeping the project's visual status board up to date.
 
 - **Metadata Rules:**
   - **Must Assign:** Each card in `todo`, `in-progress`, `review` MUST have an `assigned` field.
-  - **Must Prioritize:** Every card MUST have a `priority` ('High', 'Med', 'Low').
+  - **Must Prioritize:** Every card MUST have a `priority` ('P0', 'P1', 'P2').
   - **Must Link Ticket:** Every card MUST have a `ticket` pointing to the GitHub Issue number (e.g., `'#42'`).
   - **Roles:** Use exact titles from `team.md` (e.g., 'Lead Developer', 'Lead QA', 'Creative Director').
   - **Syntax:** `[Task Name]@{ ticket: '#ID', assigned: 'Role', priority: 'Level' }`
@@ -108,7 +108,7 @@ After ANY edit to the Kanban board, you **MUST** run the `mermaid-validator` ski
 2.  Move `[Setup Repo]` to `done`.
 3.  Check `in-progress` is empty.
 4.  Move `[Setup Lofi Gate]` from `todo` to `in-progress`.
-5.  Add metadata: `[Setup Lofi Gate]@{ ticket: '#123', assigned: 'Lead QA', priority: 'High' }`
+5.  Add metadata: `[Setup Lofi Gate]@{ ticket: '#123', assigned: 'Lead QA', priority: 'P1' }`
 6.  **Run `code2prompt` skill** to generate context for Issue #123.
     - `gh_issue_number`: Enter `123`.
     - `instructions_from_pm`: Enter "Setup Lofi Gate per docs".
@@ -148,6 +148,20 @@ flowchart TD
     Done -.-> Validation
     Archive -.-> Validation
 ```
+
+## 4. Code Review Protocol
+
+1. **Devin Review:**
+   - Wait for Devin's review on the PR.
+   - Use `gh-pr-conversation-resolver` to list unresolved threads.
+
+2. **Resolve:**
+   - **Apply Suggestions:** Use `resolve.py --apply "THREAD_ID"` to patch code directly from Devin's reviews.
+   - **Manual Fixes:** If context is missing in the suggestion, fix manually.
+   - **Resolve:** Mark threads as resolved once addressed.
+
+3. **Merge:**
+   - ONLY merge after all threads are resolved and checks pass.
 
 # Resources
 

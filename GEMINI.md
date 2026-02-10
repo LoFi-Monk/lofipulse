@@ -2,14 +2,15 @@
 
 # Current Focus
 
-We are in **EXECUTION** mode (Infrastructure Hardening).
+We are in **PLANNING** mode (Backlog Grooming).
 
-1.  **Context:** PR #15 (Agent Skills) is active.
-2.  **Action:** Resolve merge conflicts to unblock PR #15.
-3.  **Next:** Merge PR #15, then start **Issue #2 (Monorepo)**.
+1.  **Context:** PR #15 Merged. Infrastructure Upgraded.
+2.  **Action:** Prepare for Monorepo Foundation (Issue #2).
+3.  **New:** Added Issue #16 (PR Suggestions) to backlog.
 
 # Recent Decisions
 
+- [x] **Devin Review:** All merges require explicit user confirmation.
 - [x] **Trunk-Based Development:** Linear history, squash merges.
 - [x] **Strict TDD:** Lofi Gate enabled (`strict_tdd = true`).
 - [x] **Project Management:** All work tracked on Kanban + `task.md`.
@@ -18,6 +19,7 @@ We are in **EXECUTION** mode (Infrastructure Hardening).
 # Backlog
 
 - [ ] **Issue #2:** Monorepo Foundation (High)
+- [ ] **Issue #16:** Enhance PR Resolver (Apply Suggestions)
 - [ ] **Issue #3:** Config Package
 - [ ] **Issue #4:** Harness Runtime
 - [ ] **Issue #8:** Configure Secretlint (Blocked)
