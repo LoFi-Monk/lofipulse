@@ -1,18 +1,26 @@
 # Lofi Pulse
 
+> [!IMPORTANT]
+> **PROTOCOL:** Before executing ANY task, you MUST consult [.agent/docs/specs/team-workflow.md](file:///c:/ag-workspace/lofipulse/.agent/docs/specs/team-workflow.md). Strict adherence to **State Gates** (Backlog/Ready) is required.
+
 # Current Focus
 
-We are in **PLANNING** mode (Backlog Grooming).
+**Issue #2: Monorepo Foundation**
 
-1.  **Context:** PRs #16, #18, #19 Merged. All skills now Node.js.
-2.  **Action:** Prepare for Monorepo Foundation (Issue #2).
+- **Status:** `Ready`
+- **Agent:** `Lead Developer`
+- **Next Action:** **Activation** (Move to In Progress -> Create Branch -> Execute).
 
 # Recent Decisions
 
+- [x] **Team Protocol:** Adopted `team-workflow.md` with strict State Gates.
+- [x] **Backlog Gate:** Agents CANNOT touch Backlog items.
+- [x] **Ready Gate:** Agents ONLY pick up `Ready` items assigned to them.
+- [x] **Blocked Protocol:** explicit "Stop the Line" procedure with `notify_user`.
+- [x] **Trunk-Based Development:** Linear history, small PRs.
 - [x] **Devin Review:** All merges require explicit user confirmation.
-- [x] **Trunk-Based Development:** Linear history, squash merges.
 - [x] **Strict TDD:** Lofi Gate enabled (`strict_tdd = true`).
-- [x] **Project Management:** All work tracked on Kanban + `task.md`.
+- [x] **Project Management:** GitHub Projects (Issue #12) + `task.md`.
 - [x] **Package Manager:** `pnpm` standardized (ADR 0004).
 
 # Backlog
@@ -39,7 +47,6 @@ We are in **PLANNING** mode (Backlog Grooming).
 
 - [Task Board](file:///C:/Users/lofim/.gemini/antigravity/brain/8cb4abb7-604e-41bd-840d-06de299af6a9/task.md)
 - [Implementation Plan](file:///C:/Users/lofim/.gemini/antigravity/brain/8cb4abb7-604e-41bd-840d-06de299af6a9/implementation_plan.md)
-- [Kanban](file:///c:/ag-workspace/lofipulse/.agent/kanban-lofipulse.md)
 
 # Notes to future self
 

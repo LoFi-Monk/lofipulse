@@ -1,16 +1,48 @@
 ---
-description: Activate an agent for a specific GitHub Issue.
+description: Activate an agent for a specific GitHub Issue (Hydrate Context).
 ---
 
-// turbo-all
+# Workflow: Activate Issue
 
-1. Read the GitHub Issue using `gh issue view [ISSUE_ID]`.
-2. Extract the `Assigned Persona` from the body.
-3. Map the persona name to a file in `.agent/personas/`.
-4. Run `code2prompt` with the issue content as the primary instruction to generate `.agent/current-issue.md`.
-5. Update the Kanban board to move the item to `in-progress`.
-6. Output the handoff link:
-   ```
-   ***
-   [[Start Session Handoff]](file:///c:/ag-workspace/lofipulse/.agent/current-issue.md)
-   ```
+Follow this workflow to pick up a task.
+
+## 1. Protocol Check (The Gate)
+
+1.  **Fetch Metadata:**
+    ```bash
+    gh issue view [ISSUE_ID] --json number,title,state,projectItems
+    ```
+2.  **Verify State:**
+    - Check the `Status` field in `projectItems`.
+    - **CRITICAL:** If `Backlog` -> 🛑 **STOP**. Notify the user.
+    - If `Ready` -> ✅ **PROCEED**.
+3.  **Verify Persona:**
+    - Check the `Agent` field.
+    - Ensure you are ready to adopt this Persona.
+
+## 2. Activation (The Move)
+
+1.  **Set Status:**
+    ```bash
+    node .agent/skills/gh-projects/scripts/projects.js --set --issue [ISSUE_ID] --field "Status" --value "In Progress"
+    ```
+2.  **Assign Self:**
+    ```bash
+    gh issue edit [ISSUE_ID] --add-assignee "@me"
+    ```
+
+## 3. Contextualization (The Build)
+
+1.  **Generate Context:**
+    Run `code2prompt` to create `.agent/current-issue.md`.
+    (Use the `code2prompt` skill instructions).
+
+2.  **Read Context:**
+    View the generated file to load it into your context window.
+
+## 4. Execution Handoff
+
+1.  **Switch Persona:**
+    Adhere to the `Agent` persona defined in the issue.
+2.  **Start Work:**
+    Begin the "In Progress" phase (Create Branch -> Code).
