@@ -1,0 +1,18 @@
+query {
+  repository(owner: "LoFi-Monk", name: "lofipulse") {
+    pullRequest(number: 22) {
+      reviews(first: 10) {
+        nodes {
+          body
+          comments(first: 20) {
+            nodes {
+              body
+              path
+              line
+            }
+          }
+        }
+      }
+    }
+  }
+}

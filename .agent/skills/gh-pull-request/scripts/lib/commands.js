@@ -5,7 +5,7 @@
  */
 const { getCurrentBranch, parseIssueFromBranch } = require('./git');
 const { getIssueDetails, getRepoInfo } = require('./metadata');
-const { gh } = require('./gh');
+const { gh, quotePS } = require('./gh');
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
@@ -47,7 +47,11 @@ function cmdCreate(opts) {
   // Fetch Metadata
   const issue = getIssueDetails(repoInfo.owner.login, repoInfo.name, issueNumber);
   let title = opts.title || (issue ? issue.title : branch);
-  const labels = opts.label ? [opts.label] : (issue ? issue.labels : []);
+  
+  // Merge labels (deduplicate)
+  const inheritedLabels = issue ? issue.labels : [];
+  const extraLabel = opts.label ? [opts.label] : [];
+  const labels = [...new Set([...inheritedLabels, ...extraLabel])];
   
   // Construct Body
   let baseBody = opts.body;
@@ -88,11 +92,13 @@ function cmdCreate(opts) {
   console.log('\nCreating PR...');
   
   // Add --assignee @me
-  let cmd = `pr create --title "${title.replace(/"/g, '\\"')}" --body "${body.replace(/"/g, '\\"')}" --assignee "@me"`;
+  let cmd = `pr create --title ${quotePS(title)} --body ${quotePS(body)} --assignee "@me"`;
   
-  // Add labels to creation command
+  // Add labels to creation command (one flag per label to handle commas)
   if (labels.length > 0) {
-    cmd += ` --label "${labels.join(',')}"`;
+    labels.forEach(l => {
+        cmd += ` --label ${quotePS(l)}`;
+    });
   }
 
   // Execute creation
@@ -111,8 +117,8 @@ function cmdCreate(opts) {
   // Post-creation steps: Project Board
   if (issue && issue.project) {
     console.log(`Adding PR to project "${issue.project.title}"...`);
-    try {
-      gh(`project item-add ${issue.project.number} --owner "${repoInfo.owner.login}" --url "${prUrl}"`);
+    const addCmd = `project item-add ${issue.project.number} --owner "${repoInfo.owner.login}" --url "${prUrl}"`;
+    if (gh(addCmd)) {
       console.log('Project item added.');
       
       // Update Status to "In Review" -> Use gh-projects skill!
@@ -132,7 +138,7 @@ function cmdCreate(opts) {
         }
       }
 
-    } catch (err) {
+    } else {
       console.error('Failed to add to project (non-fatal).');
     }
   }

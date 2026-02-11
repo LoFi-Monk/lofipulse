@@ -39,7 +39,7 @@ function getIssueDetails(owner, repo, issueNumber) {
   `;
 
   const result = runGraphQL(query, { owner, repo, issueNumber });
-  if (!result || !result.data.repository.issue) return null;
+  if (!result?.data?.repository?.issue) return null;
 
   const issue = result.data.repository.issue;
   

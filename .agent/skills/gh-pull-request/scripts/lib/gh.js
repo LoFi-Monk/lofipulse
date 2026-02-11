@@ -29,7 +29,7 @@ function quotePS(val) {
  * @returns Parsed JSON response, or null on any error.
  */
 function runGraphQL(query, variables = {}) {
-  const tmpFile = path.join(os.tmpdir(), `gh-query-${Date.now()}.graphql`);
+  const tmpFile = path.join(os.tmpdir(), `gh-query-${Date.now()}-${Math.floor(Math.random() * 10000)}.graphql`);
 
   try {
     fs.writeFileSync(tmpFile, query, 'utf-8');
