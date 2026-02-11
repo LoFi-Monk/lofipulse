@@ -1,1 +1,2 @@
 pnpm vitest run --changed
+npx lint-staged
