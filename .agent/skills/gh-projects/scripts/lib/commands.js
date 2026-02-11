@@ -29,7 +29,10 @@ function fetchProjectData(meta) {
           items(first: 100) {
             nodes {
               id
-              content { ... on Issue { number } }
+              content {
+                ... on Issue { number }
+                ... on PullRequest { number }
+              }
             }
           }
           fields(first: 30) {

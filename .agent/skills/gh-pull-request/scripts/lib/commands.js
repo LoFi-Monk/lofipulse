@@ -6,13 +6,16 @@
 const { getCurrentBranch, parseIssueFromBranch } = require('./git');
 const { getIssueDetails, getRepoInfo } = require('./metadata');
 const { gh } = require('./gh');
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
 
 /**
  * Creates a PR for the current branch.
  *
  * 1. Detects issue number from argument or branch name.
  * 2. Fetches issue metadata (title, labels, project).
- * 3. Constructs PR body with "Closes #N".
+ * 3. Constructs PR body (template + `Closes #N`).
  * 4. Creates PR via `gh pr create`.
  * 5. Applies labels and project (if any).
  */
@@ -47,11 +50,28 @@ function cmdCreate(opts) {
   const labels = opts.label ? [opts.label] : (issue ? issue.labels : []);
   
   // Construct Body
-  const baseBody = opts.body || '<!-- Add description here -->';
-  const body = `${baseBody}\n\nCloses #${issueNumber}`;
+  let baseBody = opts.body;
+  if (!baseBody) {
+    // Try to load template
+    const templatePath = path.join(process.cwd(), '.github', 'pull_request_template.md');
+    if (fs.existsSync(templatePath)) {
+      baseBody = fs.readFileSync(templatePath, 'utf-8');
+      // Replace placeholder if exists, otherwise append
+      if (baseBody.includes('<!-- Issue Number -->')) {
+        baseBody = baseBody.replace('<!-- Issue Number -->', issueNumber);
+      } else {
+        baseBody += `\n\nCloses #${issueNumber}`;
+      }
+    } else {
+      baseBody = '<!-- Add description here -->\n\nCloses #' + issueNumber;
+    }
+  } else {
+    baseBody += `\n\nCloses #${issueNumber}`;
+  }
+
+  const body = baseBody;
 
   console.log(`PR Title: "${title}"`);
-  console.log(`PR Body: Closes #${issueNumber}`);
   console.log(`Labels: ${labels.join(', ') || '(none)'}`);
   
   if (issue && issue.project) {
@@ -60,18 +80,15 @@ function cmdCreate(opts) {
 
   if (opts.dryRun) {
     console.log('\n[Dry Run] PR Create skipped.');
+    console.log('Body Preview:\n---\n' + body + '\n---');
     return;
   }
 
   // Create PR
   console.log('\nCreating PR...');
-  // Note: we don't pass labels/project to `gh pr create` directly because
-  // we want to ensure we handle failures gracefully and maybe the CLI doesn't support
-  // project-item-add in the same call (it supports --project, but reliable item-add is better).
-  // Actually, `gh pr create` supports `--label` and `--project`. 
-  // But inheriting from issue is the key.
   
-  let cmd = `pr create --title "${title.replace(/"/g, '\\"')}" --body "${body.replace(/"/g, '\\"')}"`;
+  // Add --assignee @me
+  let cmd = `pr create --title "${title.replace(/"/g, '\\"')}" --body "${body.replace(/"/g, '\\"')}" --assignee "@me"`;
   
   // Add labels to creation command
   if (labels.length > 0) {
@@ -87,17 +104,34 @@ function cmdCreate(opts) {
 
   console.log(`PR Created: ${prUrl}`);
 
+  // Extract PR Number from URL
+  const prNumberMatch = prUrl.match(/\/pull\/(\d+)$/);
+  const prNumber = prNumberMatch ? prNumberMatch[1] : null;
+
   // Post-creation steps: Project Board
-  // We use `gh pr create --project` if possible, but let's do it explicitly to be safe
-  // and handle "ProjectV2" vs "Classic" confusion automatically if we use our `gh-projects` skill logic.
-  // For now, let's use `gh project item-add` if we have a project ID.
-  
   if (issue && issue.project) {
     console.log(`Adding PR to project "${issue.project.title}"...`);
-    // Need the PR URL or Number. `prUrl` is typically the URL.
     try {
       gh(`project item-add ${issue.project.number} --owner "${repoInfo.owner.login}" --url "${prUrl}"`);
       console.log('Project item added.');
+      
+      // Update Status to "In Review" -> Use gh-projects skill!
+      // We assume gh-projects skill is at .agent/skills/gh-projects/scripts/projects.js
+      if (prNumber) {
+        console.log('Setting status to "In Review"...');
+        const projectsScript = path.join(process.cwd(), '.agent', 'skills', 'gh-projects', 'scripts', 'projects.js');
+        if (fs.existsSync(projectsScript)) {
+           // We use --issue but pass the PR number. projects.js (updated) now handles PRs basically as items with numbers.
+           try {
+             execSync(`node "${projectsScript}" --set --issue ${prNumber} --field Status --value "In review"`, { stdio: 'inherit' });
+           } catch (e) {
+             console.error('Failed to set status (non-fatal).');
+           }
+        } else {
+           console.warn('gh-projects skill script not found, skipping status update.');
+        }
+      }
+
     } catch (err) {
       console.error('Failed to add to project (non-fatal).');
     }

@@ -24,6 +24,8 @@ node scripts/gh-pr.js --create --dry-run
 - **Metadata Inheritance**:
   - Copies **Labels** from the linked issue.
   - Adds PR to the same **Project Board** as the linked issue.
+  - Sets Project Status to **In review**.
+- **Template Support**: Uses `.github/pull_request_template.md` if available.
 - **Auto-Closing**: Appends `Closes #N` to the PR body.
 
 ## CLI Options
