@@ -1,2 +1,1 @@
-# Tests run on push and CI
-echo "Skipping tests for pre-commit..."
+pnpm vitest run --changed
