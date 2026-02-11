@@ -37,7 +37,28 @@ Adds an issue or PR to the project.
 node .agent/skills/gh-projects/scripts/projects.js --add 5
 ```
 
-### 3. `set`
+### 4. `groom`
+
+Sets all mandatory metadata for an issue in one command. Auto-creates labels if they don't exist.
+
+```bash
+node .agent/skills/gh-projects/scripts/projects.js --groom --issue 3 \
+  --priority P2 --size M --agent "Lead Developer" --label feat --status "In progress"
+
+# Output:
+# --- Groom Report: Issue #3 ---
+# Set:
+#   + Assignee: @me
+#   + Label: feat
+#   + Priority: P2
+#   + Size: M
+#   + Agent: Lead Developer
+# All metadata set successfully.
+```
+
+All flags are optional — only pass what you want to set. Assignee is always set to `@me`.
+
+### 5. `set`
 
 Updates board fields (Status, Priority, Size, Agent).
 
@@ -52,7 +73,7 @@ node .agent/skills/gh-projects/scripts/projects.js --set --issue 5 --field "Prio
 node .agent/skills/gh-projects/scripts/projects.js --set --issue 5 --field "Agent" --value "Lead Developer"
 ```
 
-### 4. `link-child`
+### 6. `link-child`
 
 Natively links a child issue to a parent issue.
 
@@ -60,7 +81,7 @@ Natively links a child issue to a parent issue.
 node .agent/skills/gh-projects/scripts/projects.js --link-child --parent 2 --child 13
 ```
 
-### 5. `list`
+### 7. `list`
 
 Lists all projects for the current owner.
 

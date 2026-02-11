@@ -4,9 +4,8 @@
 
 We are in **PLANNING** mode (Backlog Grooming).
 
-1.  **Context:** PR #15 Merged. Infrastructure Upgraded.
+1.  **Context:** PRs #16, #18, #19 Merged. All skills now Node.js.
 2.  **Action:** Prepare for Monorepo Foundation (Issue #2).
-3.  **New:** Added Issue #16 (PR Suggestions) to backlog.
 
 # Recent Decisions
 
@@ -19,7 +18,6 @@ We are in **PLANNING** mode (Backlog Grooming).
 # Backlog
 
 - [ ] **Issue #2:** Monorepo Foundation (High)
-- [ ] **Issue #16:** Enhance PR Resolver (Apply Suggestions)
 - [ ] **Issue #3:** Config Package
 - [ ] **Issue #4:** Harness Runtime
 - [ ] **Issue #8:** Configure Secretlint (Blocked)
@@ -33,6 +31,9 @@ We are in **PLANNING** mode (Backlog Grooming).
 - [x] **Issue #12:** Advanced GitHub Projects Spike
 - [x] **Issue #13:** EARS Method Skill
 - [x] **Issue #15:** Mandatory Metadata
+- [x] **Issue #16:** Enhance PR Resolver (Apply Suggestions)
+- [x] **PR #18:** Rewrite PR Resolver to Node.js + REVIEW.md
+- [x] **PR #19:** Rewrite gh-projects to Node.js
 
 # Artifacts
 
@@ -43,4 +44,5 @@ We are in **PLANNING** mode (Backlog Grooming).
 # Notes to future self
 
 - **Issue #8 (Secretlint):** HOLD until Husky setup is complete.
-- **Skill Usage:** Use `.agent/skills/gh-pr-conversation-resolver` for PR reviews.
+- **Skill Scripts:** All skills now use Node.js (`resolve.js`, `projects.js`). No more PowerShell deps.
+- **Devin Review:** `REVIEW.md` in project root instructs Devin to reduce noise. Use `resolve.js --review-all` to batch-process threads.
