@@ -53,14 +53,28 @@ function cmdCreate(opts) {
   const extraLabel = opts.label ? [opts.label] : [];
   const labels = [...new Set([...inheritedLabels, ...extraLabel])];
   
-  // Construct Body
-  let baseBody = opts.body;
-  if (!baseBody) {
-    // Try to load template
+  // Construct Body — prefer --body-file over --body over template
+  let baseBody;
+  if (opts.bodyFile) {
+    const filePath = path.resolve(opts.bodyFile);
+    if (!fs.existsSync(filePath)) {
+      console.error(`Error: Body file not found: ${filePath}`);
+      process.exit(1);
+    }
+    baseBody = fs.readFileSync(filePath, 'utf-8');
+    // Append Closes if not already present
+    if (!baseBody.includes(`Closes #${issueNumber}`)) {
+      baseBody += `\n\nCloses #${issueNumber}`;
+    }
+  } else if (opts.body) {
+    baseBody = opts.body;
+    baseBody += `\n\nCloses #${issueNumber}`;
+  } else {
+    // Fallback: raw template (warn that it's generic)
+    console.warn('⚠️  No --body-file or --body provided. Using raw template (fields will be generic).');
     const templatePath = path.join(process.cwd(), '.github', 'pull_request_template.md');
     if (fs.existsSync(templatePath)) {
       baseBody = fs.readFileSync(templatePath, 'utf-8');
-      // Replace placeholder if exists, otherwise append
       if (baseBody.includes('<!-- Issue Number -->')) {
         baseBody = baseBody.replace('<!-- Issue Number -->', issueNumber);
       } else {
@@ -69,8 +83,6 @@ function cmdCreate(opts) {
     } else {
       baseBody = '<!-- Add description here -->\n\nCloses #' + issueNumber;
     }
-  } else {
-    baseBody += `\n\nCloses #${issueNumber}`;
   }
 
   const body = baseBody;

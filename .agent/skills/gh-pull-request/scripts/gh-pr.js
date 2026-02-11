@@ -21,6 +21,7 @@ function parseArgs() {
       if (arg === '--title') { opts.title = args[++i]; continue; }
       if (arg === '--label') { opts.label = args[++i]; continue; }
       if (arg === '--body') { opts.body = args[++i]; continue; }
+      if (arg === '--body-file') { opts.bodyFile = args[++i]; continue; }
     }
   }
 
@@ -38,7 +39,8 @@ Options:
   --issue <N>        Manually specify the linked issue number (overrides branch parsing)
   --title "..."      PR title (defaults to issue title)
   --label "..."      Add a specific label (in addition to inherited ones)
-  --body "..."       PR description base text
+  --body "..."       PR description base text (inline)
+  --body-file <path> Read PR body from a markdown file (overrides --body and template)
   --dry-run          Preview what would happen without creating the PR
   -h, --help         Show this help
 
