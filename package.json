@@ -7,16 +7,20 @@
   "main": "index.js",
   "scripts": {
     "test": "vitest run",
+    "test:workspace": "pnpm -r test",
+    "build:workspace": "pnpm -r build",
+    "lint:workspace": "pnpm -r lint",
     "prepare": "husky"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-
   "type": "commonjs",
   "devDependencies": {
     "@biomejs/biome": "^2.3.14",
+    "@types/js-yaml": "^4.0.9",
     "husky": "^9.1.7",
+    "js-yaml": "^4.1.1",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
   }

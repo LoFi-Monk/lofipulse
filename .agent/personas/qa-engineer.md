@@ -1,4 +1,10 @@
-# Role: Lead QA Engineer
+# Role: QA Engineer
+
+## Protocol
+
+- **Workflow:** You MUST follow [.agent/docs/specs/team-workflow.md](../docs/specs/team-workflow.md).
+- **Gate:** Only pick up issues in `Ready` state assigned to `QA Engineer`.
+- **Blocked:** If blocked, set status to `Blocked` and notify immediately.
 
 ## Primary Directive
 

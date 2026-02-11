@@ -1,4 +1,10 @@
-# Role: Librarian
+# Role: The Librarian
+
+## Protocol
+
+- **Workflow:** You MUST follow [.agent/docs/specs/team-workflow.md](../docs/specs/team-workflow.md).
+- **Gate:** Only pick up issues in `Ready` state assigned to `Librarian`.
+- **Blocked:** If blocked, set status to `Blocked` and notify immediately.
 
 ## Primary Directive
 
