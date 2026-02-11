@@ -22,9 +22,11 @@ describe("Monorepo Foundation", () => {
     const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
 
     expect(pkg.private).toBe(true);
-    expect(pkg.scripts).toHaveProperty("test:workspace");
-    expect(pkg.scripts).toHaveProperty("build:workspace");
-    expect(pkg.scripts).toHaveProperty("lint:workspace");
+    expect(pkg.scripts).toHaveProperty("build");
+    expect(pkg.scripts).toHaveProperty("lint");
+    expect(pkg.scripts).toHaveProperty("test");
+    expect(pkg.scripts.build).toContain("turbo");
+    expect(pkg.scripts.lint).toContain("biome");
   });
 
   it("should follow the planned directory structure", () => {
