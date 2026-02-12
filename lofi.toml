@@ -1,2 +1,2 @@
 [gate]
-strict_tdd = true
+strict_tdd = false

@@ -129,9 +129,7 @@ flowchart TD
 
 ---
 
-**Key Rules:**
-
 - **Serial Work:** Finish -> Archive -> Start Next.
 - **WIP Limit:** 1. Focus on one thing.
-- **Visual Proof:** Lofi Gate must be green before Review.
+- **CI Green:** All tests must pass in CI (`turbo run test`) before Review.
 - **No Cheat:** Tests MUST exist before implementation.

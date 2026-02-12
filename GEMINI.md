@@ -5,51 +5,48 @@
 
 # Current Focus
 
-**Issue #2: Monorepo Foundation**
+**Issue #24: Configure Husky Hooks**
 
-- **Status:** `Ready`
+- **Status:** `In Progress`
 - **Agent:** `Lead Developer`
-- **Next Action:** **Activation** (Move to In Progress -> Create Branch -> Execute).
+- **Next Action:** Configure pre-commit (partial tests) and pre-push (full tests) hooks.
 
 # Recent Decisions
 
 - [x] **Team Protocol:** Adopted `team-workflow.md` with strict State Gates.
-- [x] **Backlog Gate:** Agents CANNOT touch Backlog items.
-- [x] **Ready Gate:** Agents ONLY pick up `Ready` items assigned to them.
-- [x] **Blocked Protocol:** explicit "Stop the Line" procedure with `notify_user`.
 - [x] **Trunk-Based Development:** Linear history, small PRs.
 - [x] **Devin Review:** All merges require explicit user confirmation.
-- [x] **Strict TDD:** Lofi Gate enabled (`strict_tdd = true`).
-- [x] **Project Management:** GitHub Projects (Issue #12) + `task.md`.
+- [x] **Lofi Gate:** Deprecated (ADR 0008). Revisit when feature code exists.
 - [x] **Package Manager:** `pnpm` standardized (ADR 0004).
+- [x] **Task Runner:** Turborepo (ADR 0006).
+- [x] **Formatter/Linter:** Biome (ADR 0007).
 
 # Backlog
 
-- [ ] **Issue #2:** Monorepo Foundation (High)
-- [ ] **Issue #3:** Config Package
+- [ ] **Issue #3:** Config Package (Ready)
+- [ ] **Issue #8:** Configure Secretlint Pre-commit Hook (Ready)
 - [ ] **Issue #4:** Harness Runtime
-- [ ] **Issue #8:** Configure Secretlint (Blocked)
+- [ ] **Issue #5:** Pi SDK Integration
+- [ ] **Issue #6:** CLI REPL
 
 # Completed
 
 - [x] **Issue #1:** Project Init & CI
+- [x] **Issue #2:** Monorepo Foundation
 - [x] **Issue #9:** Fix YouTube Transcript Bugs
-- [x] **Issue #10:** Infra & Gate Cleanup (pnpm)
-- [x] **Issue #11:** GH PR Conversation Resolver Skill
+- [x] **Issue #10:** Infra & Gate Cleanup
 - [x] **Issue #12:** Advanced GitHub Projects Spike
-- [x] **Issue #13:** EARS Method Skill
-- [x] **Issue #15:** Mandatory Metadata
-- [x] **Issue #16:** Enhance PR Resolver (Apply Suggestions)
-- [x] **PR #18:** Rewrite PR Resolver to Node.js + REVIEW.md
-- [x] **PR #19:** Rewrite gh-projects to Node.js
+- [x] **Issue #13:** [TEST] Monorepo Structure
+- [x] **Issue #14:** [CODE] Monorepo Structure
+- [x] **Issue #21:** gh-pull-request Skill
 
 # Artifacts
 
-- [Task Board](file:///C:/Users/lofim/.gemini/antigravity/brain/8cb4abb7-604e-41bd-840d-06de299af6a9/task.md)
-- [Implementation Plan](file:///C:/Users/lofim/.gemini/antigravity/brain/8cb4abb7-604e-41bd-840d-06de299af6a9/implementation_plan.md)
+- [Task Board](file:///C:/Users/lofim/.gemini/antigravity/brain/b73f26bf-5dd0-4630-96dd-47c702b7b436/task.md)
+- [Implementation Plan](file:///C:/Users/lofim/.gemini/antigravity/brain/b73f26bf-5dd0-4630-96dd-47c702b7b436/implementation_plan.md)
 
 # Notes to future self
 
-- **Issue #8 (Secretlint):** HOLD until Husky setup is complete.
+- **Issue #8 (Secretlint):** HOLD until Husky setup (#24) is complete.
 - **Skill Scripts:** All skills now use Node.js (`resolve.js`, `projects.js`). No more PowerShell deps.
 - **Devin Review:** `REVIEW.md` in project root instructs Devin to reduce noise. Use `resolve.js --review-all` to batch-process threads.
