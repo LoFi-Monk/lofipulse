@@ -423,8 +423,8 @@ function cmdGroom(meta, issueNumber, groomOpts, jsonMode = false) {
       continue;
     }
 
-    const valueGraphQL = buildValueGraphQL(field, value);
-    if (!valueGraphQL) {
+    const cliArgs = buildFieldCLIArgs(field, value);
+    if (!cliArgs) {
       errors.push(`${fieldName}: '${value}' not found`);
       continue;
     }
