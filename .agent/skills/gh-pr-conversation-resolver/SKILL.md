@@ -74,6 +74,36 @@ Applies the `suggestion` block from the thread's first comment to the local file
 node .agent/skills/gh-pr-conversation-resolver/scripts/resolve.js --apply "THREAD_ID"
 ```
 
+```bash
+node .agent/skills/gh-pr-conversation-resolver/scripts/resolve.js --apply "THREAD_ID"
+```
+
+## Agent Strategy for Devin Reviews
+
+This skill is optimized for "Agent-First" high-efficiency review cycles.
+
+1.  **Read All Threads**: Use `--list --json` to get a machine-readable list of all unresolved threads, including 10 lines of code context for each.
+    ```bash
+    node resolve.js --list --json
+    ```
+2.  **Analyze Context**: Compare the `code_snippet` in the JSON with the comment body to understand the required fix.
+3.  **Construct Batch Plan**: Group multiple fixes into a single JSON array for the `--batch` command.
+    ```json
+    [
+      {
+        "id": "PRRT_1",
+        "applySuggestion": true,
+        "reply": "Applied.",
+        "resolve": true
+      },
+      { "id": "PRRT_2", "reply": "I'll fix this manually.", "resolve": false }
+    ]
+    ```
+4.  **Execute**: Run the batch action atomically.
+    ```bash
+    node resolve.js --batch '[...]' --json
+    ```
+
 ## Dependencies
 
 - `gh` CLI (authenticated)

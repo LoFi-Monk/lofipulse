@@ -168,6 +168,31 @@ function categorizeComment(body) {
   return 'ANALYSIS';
 }
 
+/**
+ * Reads the file context around a thread's line.
+ * Extracts 5 lines before and 5 lines after.
+ *
+ * @returns {string} Code snippet with line numbers.
+ */
+function getThreadContext(thread) {
+  try {
+    const filePath = thread.path;
+    const line = thread.line || thread.originalLine;
+    if (!line || !fs.existsSync(filePath)) return '';
+
+    const content = fs.readFileSync(filePath, 'utf-8').split('\n');
+    const startIdx = Math.max(0, line - 6);
+    const endIdx = Math.min(content.length, line + 5);
+
+    return content
+      .slice(startIdx, endIdx)
+      .map((l, i) => `${startIdx + i + 1}: ${l}`)
+      .join('\n');
+  } catch {
+    return '';
+  }
+}
+
 module.exports = {
   getThreads,
   resolveThread,
@@ -175,4 +200,5 @@ module.exports = {
   extractSuggestion,
   applySuggestion,
   categorizeComment,
+  getThreadContext,
 };

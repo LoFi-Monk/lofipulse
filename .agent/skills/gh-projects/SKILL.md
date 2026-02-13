@@ -7,6 +7,78 @@ description: Manage GitHub Projects V2 items and metadata using GraphQL.
 
 Automates interaction with GitHub Projects V2 using the GitHub CLI and GraphQL.
 
+## HIGH-EFFICIENCY COMMANDS (Agent-First)
+
+These commands are optimized for agents. Use the `--json` flag to suppress all ASCII tables and narration, returning only a minimal JSON object for parsing.
+
+### 1. `create-epic` (Composite Command)
+
+Atomically creates an issue, adds it to the board, and sets all mandatory metadata.
+
+```bash
+node .agent/skills/gh-projects/scripts/projects.js --create-epic "Title" \
+  --priority P0 --size L --agent "Lead Developer" --json
+
+# Output:
+# {"success":true,"number":123,"url":"...","results":["..."],"errors":[]}
+```
+
+### 2. `blueprint` (Recursive Builder)
+
+Generates an entire feature hierarchy (Epics -> Stories -> Tasks) in a single atomic call. Supports Markdown bodies and infinite nesting.
+
+```bash
+node .agent/skills/gh-projects/scripts/projects.js --blueprint '{
+  "title": "Epic Title",
+  "body": "Global objectives...",
+  "priority": "P1",
+  "size": "L",
+  "agent": "CTO",
+  "children": [
+    {
+      "title": "[LEAD DEV] Story 1",
+      "body": "- [ ] Task 1.1\n- [ ] Task 1.2",
+      "children": [
+        { "title": "Sub-task 1.1.1", "body": "Details..." }
+      ]
+    }
+  ]
+}' --json
+
+# Output:
+# {"success":true,"rootId":124,"status":"Blueprint Executed"}
+```
+
+### 3. `read-tree`
+
+Fetches the full hierarchy (Epic -> Stories -> Tasks) of an issue.
+
+```bash
+node .agent/skills/gh-projects/scripts/projects.js --read-tree 123 --json
+
+# Output:
+# {
+#   "success": true,
+#   "tree": {
+#     "number": 123,
+#     "title": "Epic",
+#     "state": "open",
+#     "body": "...",
+#     "children": [
+#       { "number": 124, "title": "Story", "state": "open", "body": "..." }
+#     ]
+#   }
+# }
+```
+
+### 4. `--json` Flag
+
+Available for all commands. Suppresses formatting and returns raw data.
+
+```bash
+node .agent/skills/gh-projects/scripts/projects.js --pulse --json
+```
+
 ## AUTO-DISCOVERY
 
 This skill automatically resolves the **Owner**, **Repository**, and **Project Number** based on the current workspace context. It assumes:
@@ -16,9 +88,9 @@ This skill automatically resolves the **Owner**, **Repository**, and **Project N
 
 ## COMMANDS
 
-### 1. `pulse`
+### 1. `pulse` (Human Only)
 
-Fetches the current status of the board.
+Fetches the current status of the board. Agents should prefer `--json` mode or atomic commands to save tokens.
 
 ```bash
 node .agent/skills/gh-projects/scripts/projects.js --pulse
@@ -81,7 +153,21 @@ Natively links a child issue to a parent issue.
 node .agent/skills/gh-projects/scripts/projects.js --link-child --parent 2 --child 13
 ```
 
-### 7. `list`
+### 7. `ship`
+
+Creates a pull request for an issue.
+
+```bash
+node .agent/skills/gh-projects/scripts/projects.js --ship --issue 12 --title "Feat: Auth Logic" --json
+```
+
+**Optional Flags for `ship`:**
+
+- `--reviewer <user>`: Request a review (Critical for visibility).
+- `--label <label>`: Add classification (e.g., `automated-pr`).
+- `--assignee <user>`: Assign ownership.
+
+### 8. `list`
 
 Lists all projects for the current owner.
 

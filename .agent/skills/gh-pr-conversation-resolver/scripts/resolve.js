@@ -6,7 +6,7 @@
  * Zero npm dependencies. Auth handled by `gh` CLI.
  */
 const { getCurrentPR } = require('./lib/gh');
-const { cmdList, cmdResolveAll, cmdReviewAll, cmdApply, resolveThread, replyThread } = require('./lib/commands');
+const { cmdList, cmdResolveAll, cmdReviewAll, cmdApply, resolveThread, replyThread, cmdReadThread, cmdBatchAction } = require('./lib/commands');
 
 // ─── CLI Argument Parsing ───────────────────────────────────────────────────
 
@@ -21,6 +21,7 @@ function parseArgs() {
     if (arg === '--all') { opts.all = true; continue; }
     if (arg === '--resolve-all') { opts.resolveAll = true; continue; }
     if (arg === '--review-all') { opts.reviewAll = true; continue; }
+    if (arg === '--json') { opts.json = true; continue; }
 
     // Flags with a value
     if (i + 1 < args.length) {
@@ -29,6 +30,8 @@ function parseArgs() {
       if (arg === '--reply') { opts.reply = args[++i]; continue; }
       if (arg === '--thread') { opts.thread = args[++i]; continue; }
       if (arg === '--apply') { opts.apply = args[++i]; continue; }
+      if (arg === '--read-thread') { opts.readThread = args[++i]; continue; }
+      if (arg === '--batch') { opts.batch = args[++i]; continue; }
     }
   }
 
@@ -43,6 +46,9 @@ Options:
   --pr NUMBER        Pull Request number (auto-detects if omitted)
   --list             List unresolved threads
   --all              Include resolved threads in list
+  --json             Output clean JSON (agent-first)
+  --read-thread ID   Fetch full context for a thread
+  --batch JSON       Execute multiple actions atomically
   --resolve ID       Resolve a specific thread
   --reply TEXT       Reply text (use with --resolve or --thread)
   --thread ID        Thread ID for reply
@@ -66,12 +72,20 @@ function main() {
   // Auto-detect PR from current branch if not specified
   const prNumber = opts.pr || getCurrentPR();
   if (!prNumber) {
-    console.error('Could not determine PR number. Run inside a PR branch or specify --pr.');
+    if (opts.json) {
+      console.log(JSON.stringify({ success: false, error: 'Could not determine PR number' }));
+    } else {
+      console.error('Could not determine PR number. Run inside a PR branch or specify --pr.');
+    }
     process.exit(1);
   }
 
   if (opts.list) {
-    cmdList(prNumber, opts.all);
+    cmdList(prNumber, opts.all, opts.json);
+  } else if (opts.readThread) {
+    cmdReadThread(prNumber, opts.readThread, opts.json);
+  } else if (opts.batch) {
+    cmdBatchAction(opts.batch, prNumber, opts.json);
   } else if (opts.resolve) {
     resolveThread(opts.resolve);
     if (opts.reply) replyThread(opts.resolve, opts.reply);
@@ -83,7 +97,11 @@ function main() {
     cmdApply(prNumber, opts.apply);
   } else if (opts.reply) {
     if (!opts.thread) {
-      console.error('Error: --thread ID required for reply.');
+      if (opts.json) {
+        console.log(JSON.stringify({ success: false, error: '--thread ID required for reply' }));
+      } else {
+        console.error('Error: --thread ID required for reply.');
+      }
       process.exit(1);
     }
     replyThread(opts.thread, opts.reply);

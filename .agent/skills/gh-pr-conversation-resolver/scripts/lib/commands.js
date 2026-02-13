@@ -10,6 +10,7 @@ const {
   resolveThread,
   replyThread,
   categorizeComment,
+  getThreadContext,
   applySuggestion,
 } = require('./threads');
 
@@ -17,20 +18,38 @@ const {
  * Lists review threads with status, location, and content preview.
  * Shows only unresolved threads unless --all is also passed.
  */
-function cmdList(prNumber, showAll) {
+function cmdList(prNumber, showAll, jsonMode = false) {
   const threads = getThreads(prNumber);
-  console.log(`Review Threads for PR #${prNumber}:`);
+  const jsonList = [];
+
+  if (!jsonMode) console.log(`Review Threads for PR #${prNumber}:`);
   let count = 0;
 
   for (const t of threads) {
     if (!showAll && t.isResolved) continue;
 
-    const status = t.isResolved ? 'Resolved' : 'Unresolved';
     const firstComment = t.comments.nodes[0] || null;
     const author = firstComment?.author?.login || 'Unknown';
-    let body = (firstComment?.body || '').replace(/\n/g, ' ');
+    const rawBody = firstComment?.body || '';
+    let body = rawBody.replace(/\n/g, ' ');
+    const category = categorizeComment(rawBody);
 
-    const hasSuggestion = body.includes('```suggestion');
+    if (jsonMode) {
+      jsonList.push({
+        id: t.id,
+        isResolved: t.isResolved,
+        path: t.path,
+        line: t.line || t.originalLine,
+        author,
+        category,
+        body: rawBody,
+        code_snippet: getThreadContext(t),
+      });
+      continue;
+    }
+
+    const status = t.isResolved ? 'Resolved' : 'Unresolved';
+    const hasSuggestion = rawBody.includes('```suggestion');
     const icon = hasSuggestion ? '[SUGGESTION]' : '';
 
     if (body.length > 100) body = body.slice(0, 97) + '...';
@@ -51,7 +70,126 @@ function cmdList(prNumber, showAll) {
     count++;
   }
 
+  if (jsonMode) {
+    console.log(JSON.stringify({ success: true, threads: jsonList }));
+    return;
+  }
+
   if (count === 0) console.log('No threads found matching criteria.');
+}
+
+/** Fetches and displays a single thread with full context. */
+function cmdReadThread(prNumber, threadId, jsonMode = false) {
+  const threads = getThreads(prNumber);
+  const t = threads.find(thread => thread.id === threadId);
+
+  if (!t) {
+    if (jsonMode) {
+      console.log(JSON.stringify({ success: false, error: `Thread ${threadId} not found` }));
+    } else {
+      console.error(`Error: Thread ${threadId} not found.`);
+    }
+    process.exit(1);
+  }
+
+  const firstComment = t.comments.nodes[0] || null;
+  const author = firstComment?.author?.login || 'Unknown';
+  const rawBody = firstComment?.body || '';
+  const category = categorizeComment(rawBody);
+
+  if (jsonMode) {
+    console.log(JSON.stringify({
+      success: true,
+      thread: {
+        id: t.id,
+        isResolved: t.isResolved,
+        path: t.path,
+        line: t.line || t.originalLine,
+        author,
+        category,
+        body: rawBody,
+        code_snippet: getThreadContext(t),
+        comments: t.comments.nodes,
+      }
+    }));
+  } else {
+    console.log(`\n--- Thread: ${t.id} ---`);
+    console.log(`File: ${t.path} : ${t.line || t.originalLine}`);
+    console.log(`Category: ${category}`);
+    console.log(`\nCode Context:\n${getThreadContext(t)}`);
+    console.log(`\nLatest Comment (${author}):\n${rawBody}\n`);
+  }
+}
+
+/** Executes multiple actions (apply, reply, resolve) atomically across threads. */
+function cmdBatchAction(jsonString, prNumber, jsonMode = false) {
+  let actions;
+  try {
+    actions = JSON.parse(jsonString);
+  } catch (e) {
+    if (jsonMode) {
+      console.log(JSON.stringify({ success: false, error: 'Invalid batch JSON' }));
+    } else {
+      console.error('Error: Invalid batch JSON.');
+    }
+    process.exit(1);
+  }
+
+  const threads = getThreads(prNumber);
+  const results = [];
+
+  for (const action of actions) {
+    const t = threads.find(thread => thread.id === action.id);
+    if (!t) {
+      results.push({ id: action.id, success: false, error: 'Thread not found' });
+      continue;
+    }
+
+    const actionResults = [];
+
+    // 1. Apply Suggestion
+    if (action.applySuggestion) {
+      try {
+        applySuggestion(t);
+        actionResults.push('Applied suggestion');
+      } catch (e) {
+        actionResults.push(`Error applying suggestion: ${e.message}`);
+      }
+    }
+
+    // 2. Reply
+    if (action.reply) {
+      try {
+        replyThread(t.id, action.reply);
+        actionResults.push('Posted reply');
+      } catch (e) {
+        actionResults.push(`Error posting reply: ${e.message}`);
+      }
+    }
+
+    // 3. Resolve (Must be last)
+    if (action.resolve) {
+      try {
+        resolveThread(t.id);
+        actionResults.push('Resolved thread');
+      } catch (e) {
+        actionResults.push(`Error resolving thread: ${e.message}`);
+      }
+    }
+
+    results.push({ id: action.id, success: true, actions: actionResults });
+  }
+
+  if (jsonMode) {
+    console.log(JSON.stringify({ success: true, results }));
+  } else {
+    console.log('\n--- Batch Action Results ---');
+    results.forEach(r => {
+      console.log(`Thread ${r.id}: ${r.success ? 'Success' : 'Failed'}`);
+      if (r.actions) r.actions.forEach(a => console.log(`  + ${a}`));
+      if (r.error) console.log(`  ! ${r.error}`);
+    });
+  }
 }
 
 /** Resolves every unresolved thread on the PR in one pass. */
@@ -84,9 +222,6 @@ function cmdApply(prNumber, threadId) {
  *   1. Categorizes each thread as BUG, SUGGESTION, or ANALYSIS
  *   2. Auto-resolves ANALYSIS threads (confirmations that don't need action)
  *   3. Reports remaining BUGs and SUGGESTIONs for manual review
- *
- * Designed to reduce a 20+ thread review session down to a handful
- * of genuinely actionable items.
  */
 function cmdReviewAll(prNumber) {
   const threads = getThreads(prNumber);
@@ -122,13 +257,11 @@ function cmdReviewAll(prNumber) {
     else analyses.push(entry);
   }
 
-  // Auto-resolve ANALYSIS threads (they're just confirmations)
   if (analyses.length > 0) {
     console.log(`Auto-resolving ${analyses.length} analysis/confirmation threads...`);
     for (const a of analyses) resolveThread(a.id);
   }
 
-  // Report actionable items that need human attention
   if (bugs.length > 0) {
     console.log(`\nBUGS (${bugs.length}) — Must fix:`);
     for (const b of bugs) {
@@ -156,4 +289,13 @@ function cmdReviewAll(prNumber) {
   console.log(`\nSummary: ${bugs.length} bugs, ${suggestions.length} suggestions, ${analyses.length} auto-resolved`);
 }
 
-module.exports = { cmdList, cmdResolveAll, cmdApply, cmdReviewAll, resolveThread, replyThread };
+module.exports = { 
+  cmdList, 
+  cmdResolveAll, 
+  cmdApply, 
+  cmdReviewAll, 
+  cmdReadThread, 
+  cmdBatchAction, 
+  resolveThread, 
+  replyThread 
+};
