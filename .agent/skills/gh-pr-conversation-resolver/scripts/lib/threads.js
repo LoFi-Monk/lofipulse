@@ -12,17 +12,19 @@ const { runGraphQL, getRepoInfo } = require('./gh');
  * Fetches all review threads for a PR, including resolution status,
  * file location, and the first comment's content.
  *
- * Returns an empty array on any failure to keep callers simple.
+ * @param {Number} prNumber
+ * @returns {Array} List of thread nodes.
  */
 function getThreads(prNumber) {
   const repo = getRepoInfo();
   if (!repo) return [];
 
+  const limit = 100;
   const query = `
     query {
       repository(owner: "${repo.owner.login}", name: "${repo.name}") {
         pullRequest(number: ${prNumber}) {
-          reviewThreads(first: 50) {
+          reviewThreads(first: ${limit}) {
             nodes {
               id
               isResolved
@@ -47,7 +49,11 @@ function getThreads(prNumber) {
   const result = runGraphQL(query);
   if (!result) return [];
   try {
-    return result.data.repository.pullRequest.reviewThreads.nodes;
+    const nodes = result.data.repository.pullRequest.reviewThreads.nodes;
+    if (nodes.length === limit) {
+      console.warn(`Warning: PR #${prNumber} has many threads. Only the first ${limit} were fetched.`);
+    }
+    return nodes;
   } catch {
     return [];
   }
@@ -77,7 +83,7 @@ function replyThread(threadId, body) {
  * Extracts the code from a GitHub suggestion block (```suggestion ... ```).
  *
  * Returns { lines: string[] } on success, or { error: string } on failure.
- * Handles malformed blocks (missing fence) and empty blocks.
+ * Handles malformed blocks (missing fence) and empty blocks (which represent line deletions).
  */
 function extractSuggestion(body) {
   const lines = body.split('\n');
@@ -97,7 +103,7 @@ function extractSuggestion(body) {
   }
 
   if (inBlock) return { error: 'Malformed suggestion block (missing closing fence).' };
-  if (suggestionLines.length === 0) return { error: 'Empty suggestion block.' };
+  // Empty suggestion blocks are allowed and represent line deletions.
   return { lines: suggestionLines };
 }
 
