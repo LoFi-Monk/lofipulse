@@ -22,6 +22,7 @@ function parseArgs() {
     if (arg === '--groom') { opts.groom = true; continue; }
     if (arg === '--link-child') { opts.linkChild = true; continue; }
     if (arg === '--json') { opts.json = true; continue; }
+    if (arg === '--no-cache') { opts.noCache = true; continue; }
     if (arg === '--ship') { opts.ship = true; continue; }
 
     // Flags with values
@@ -70,6 +71,7 @@ Commands:
 
 Options:
   --json                           Output raw data as JSON
+  --no-cache                       Force fresh metadata fetch (ignore cache)
   --owner <owner>       Override auto-discovered owner
   --project <number>    Override auto-discovered project number
   --label "bug"                    Add label (used by create-epic and ship)
@@ -108,9 +110,10 @@ function main() {
     }
     cmdShip(meta, opts.issue, opts.title, opts, opts.json);
   } else if (opts.pulse) {
-    cmdPulse(meta, opts.json);
+    cmdPulse(meta, opts.json, opts.noCache);
   } else if (opts.add) {
-    cmdAdd(meta, opts.add, opts.json);
+    const itemId = cmdAdd(meta, opts.add, opts.json);
+    if (!itemId) process.exit(1);
   } else if (opts.groom) {
     if (!opts.issue) {
       if (opts.json) {
@@ -126,7 +129,7 @@ function main() {
       agent: opts.agent,
       label: opts.label,
       status: opts.status,
-    }, opts.json);
+    }, opts.json, opts.noCache);
   } else if (opts.set) {
     if (!opts.issue || !opts.field || !opts.value) {
       if (opts.json) {
@@ -136,7 +139,7 @@ function main() {
       }
       process.exit(1);
     }
-    cmdSet(meta, opts.issue, opts.field, opts.value, opts.json);
+    cmdSet(meta, opts.issue, opts.field, opts.value, opts.json, opts.noCache);
   } else if (opts.linkChild) {
     if (!opts.parent || !opts.child) {
       if (opts.json) {

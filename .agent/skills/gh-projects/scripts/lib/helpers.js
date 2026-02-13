@@ -18,7 +18,7 @@ const { gh, runGraphQL, quotePS } = require('./gh');
 // The cache file is stored in a hidden directory in the workspace to allow 
 // persistence across different command invocations while avoiding git pollution.
 const CACHE_FILE = path.resolve(process.cwd(), '.agent', '.cache_project_schema.json');
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5-minute cache lifespan
+const CACHE_TTL_MS = 2 * 60 * 1000; // 2-minute cache lifespan
 
 /**
  * Fetches all project items and field definitions in a single round-trip.
