@@ -1,6 +1,3 @@
-const fs = require('fs');
-const path = require('path');
-
 /**
  * High-level PR review commands.
  *
@@ -8,6 +5,8 @@ const path = require('path');
  * --review-all, --apply). They compose the thread primitives from
  * threads.js into user-facing workflows.
  */
+const fs = require('fs');
+const path = require('path');
 const {
   getThreads,
   resolveThread,
@@ -17,14 +16,21 @@ const {
   applySuggestion,
 } = require('./threads');
 
+// TEMP_DIR is the default location for cmdPlan artifacts.
+// Note: cmdApplyPlan remains path-agnostic and accepts any JSON path.
+const TEMP_DIR = path.resolve(process.cwd(), 'review_temp');
+
 /**
- * Provides a summarized or machine-readable list of pull request review threads.
- * 
- * Guarantees a consistent JSON schema when jsonMode is enabled, including 
- * code snippets and categorization, allowing agents to ingest the entire 
- * review state in a single pass.
+ * Lists review threads with status, location, and content preview.
+ * Supports filtering by author and category, and optional JSON output.
+ *
+ * @param {Number} prNumber
+ * @param {Boolean} showAll - Include resolved threads.
+ * @param {String} authorFilter - Filter by author login.
+ * @param {String} categoryFilter - Filter by BUG|SUGGESTION|ANALYSIS.
+ * @param {Boolean} jsonMode - Output as machine-readable JSON.
  */
-function cmdList(prNumber, showAll, jsonMode = false) {
+function cmdList(prNumber, showAll = false, authorFilter = null, categoryFilter = null, jsonMode = false) {
   const threads = getThreads(prNumber);
   const jsonList = [];
 
@@ -37,8 +43,11 @@ function cmdList(prNumber, showAll, jsonMode = false) {
     const firstComment = t.comments.nodes[0] || null;
     const author = firstComment?.author?.login || 'Unknown';
     const rawBody = firstComment?.body || '';
-    let body = rawBody.replace(/\n/g, ' ');
-    const category = categorizeComment(rawBody);
+    const category = firstComment ? categorizeComment(rawBody) : 'UNKNOWN';
+
+    // Apply filters
+    if (authorFilter && author.toLowerCase() !== authorFilter.toLowerCase()) continue;
+    if (categoryFilter && category.toUpperCase() !== categoryFilter.toUpperCase()) continue;
 
     if (jsonMode) {
       jsonList.push({
@@ -55,7 +64,9 @@ function cmdList(prNumber, showAll, jsonMode = false) {
     }
 
     const status = t.isResolved ? 'Resolved' : 'Unresolved';
-    const hasSuggestion = rawBody.includes('```suggestion');
+    let body = rawBody.replace(/\n/g, ' ');
+
+    const hasSuggestion = body.includes('```suggestion');
     const icon = hasSuggestion ? '[SUGGESTION]' : '';
 
     if (body.length > 100) body = body.slice(0, 97) + '...';
@@ -69,7 +80,7 @@ function cmdList(prNumber, showAll, jsonMode = false) {
     }
 
     console.log(`\nID: ${t.id} ${icon}`);
-    console.log(`Status: ${status}`);
+    console.log(`Status: ${status} | Category: ${category}`);
     console.log(`File: ${t.path} : ${location}${flag}`);
     console.log(`Author: ${author}`);
     console.log(`Content: ${body}`);
@@ -135,17 +146,11 @@ function cmdReadThread(prNumber, threadId, jsonMode = false) {
 /**
  * Executes a sequence of operations (Apply, Reply, Resolve) across multiple 
  * review threads in a single atomic cycle.
- * 
- * Guarantees that resolution always happens last to ensure preceding 
- * replies or suggestion applications are processed before the thread is closed.
- * 
- * Callers should pass a valid JSON array of action objects.
  */
 function cmdBatchAction(input, prNumber, jsonMode = false) {
   let actions;
   let jsonString = input;
 
-  // If input is a path to a JSON file, read it
   if (input.endsWith('.json') && fs.existsSync(path.resolve(process.cwd(), input))) {
     try {
       jsonString = fs.readFileSync(path.resolve(process.cwd(), input), 'utf8');
@@ -159,11 +164,8 @@ function cmdBatchAction(input, prNumber, jsonMode = false) {
   try {
     actions = JSON.parse(jsonString);
   } catch (e) {
-    if (jsonMode) {
-      console.log(JSON.stringify({ success: false, error: 'Invalid batch JSON' }));
-    } else {
-      console.error('Error: Invalid batch JSON.');
-    }
+    if (jsonMode) console.log(JSON.stringify({ success: false, error: 'Invalid batch JSON' }));
+    else console.error('Error: Invalid batch JSON.');
     process.exit(1);
   }
 
@@ -180,7 +182,6 @@ function cmdBatchAction(input, prNumber, jsonMode = false) {
     const actionResults = [];
     let isItemSuccess = true;
 
-    // 1. Apply Suggestion
     if (action.applySuggestion) {
       try {
         applySuggestion(t);
@@ -191,7 +192,6 @@ function cmdBatchAction(input, prNumber, jsonMode = false) {
       }
     }
 
-    // 2. Reply
     if (action.reply) {
       try {
         replyThread(t.id, action.reply);
@@ -202,7 +202,6 @@ function cmdBatchAction(input, prNumber, jsonMode = false) {
       }
     }
 
-    // 3. Resolve (Must be last)
     if (action.resolve) {
       try {
         resolveThread(t.id);
@@ -217,16 +216,13 @@ function cmdBatchAction(input, prNumber, jsonMode = false) {
     results.push({ id: action.id, success: !hasErrors, actions: actionResults });
   }
 
-  const overallSuccess = results.every(r => r.success);
-
   if (jsonMode) {
-    console.log(JSON.stringify({ success: overallSuccess, results }));
+    console.log(JSON.stringify({ success: results.every(r => r.success), results }));
   } else {
     console.log('\n--- Batch Action Results ---');
     results.forEach(r => {
       console.log(`Thread ${r.id}: ${r.success ? 'Success' : 'Failed'}`);
       if (r.actions) r.actions.forEach(a => console.log(`  + ${a}`));
-      if (r.error) console.log(`  ! ${r.error}`);
     });
   }
 }
@@ -245,7 +241,6 @@ function cmdResolveAll(prNumber) {
 
 /**
  * Applies a code suggestion from a thread directly to the local file.
- * Looks up the thread by ID and delegates to applySuggestion().
  */
 function cmdApply(prNumber, threadId) {
   const threads = getThreads(prNumber);
@@ -255,14 +250,9 @@ function cmdApply(prNumber, threadId) {
 }
 
 /**
- * Batch-reviews all unresolved threads using Devin's metadata.
- *
- * This is the primary review workflow. It:
- *   1. Categorizes each thread as BUG, SUGGESTION, or ANALYSIS
- *   2. Auto-resolves ANALYSIS threads (confirmations that don't need action)
- *   3. Reports remaining BUGs and SUGGESTIONs for manual review
+ * Batch-reviews threads using Devin's metadata and user-specified filters.
  */
-function cmdReviewAll(prNumber) {
+function cmdReviewAll(prNumber, authorFilter = null, categoryFilter = null) {
   const threads = getThreads(prNumber);
   const unresolved = threads.filter(t => !t.isResolved);
 
@@ -281,12 +271,17 @@ function cmdReviewAll(prNumber) {
     const firstComment = t.comments.nodes[0];
     if (!firstComment) continue;
 
+    const author = firstComment.author?.login || 'Unknown';
     const category = categorizeComment(firstComment.body);
+
+    if (authorFilter && author.toLowerCase() !== authorFilter.toLowerCase()) continue;
+    if (categoryFilter && category.toUpperCase() !== categoryFilter.toUpperCase()) continue;
+
     const entry = {
       id: t.id,
       path: t.path,
       line: t.line || t.originalLine,
-      author: firstComment.author?.login || 'Unknown',
+      author,
       body: firstComment.body.replace(/\n/g, ' ').slice(0, 150),
       category,
     };
@@ -296,45 +291,124 @@ function cmdReviewAll(prNumber) {
     else analyses.push(entry);
   }
 
+  // Auto-resolve ANALYSIS threads
   if (analyses.length > 0) {
     console.log(`Auto-resolving ${analyses.length} analysis/confirmation threads...`);
     for (const a of analyses) resolveThread(a.id);
   }
 
+  // Report actionable items
   if (bugs.length > 0) {
     console.log(`\nBUGS (${bugs.length}) — Must fix:`);
     for (const b of bugs) {
-      console.log(`  ID: ${b.id}`);
-      console.log(`  File: ${b.path} : ${b.line}`);
-      console.log(`  Content: ${b.body}`);
-      console.log('');
+      console.log(`  ID: ${b.id} | File: ${b.path} : ${b.line}`);
+      console.log(`  Content: ${b.body}\n`);
     }
   }
 
   if (suggestions.length > 0) {
-    console.log(`\nSUGGESTIONS (${suggestions.length}) — Can auto-apply with --apply:`);
+    console.log(`\nSUGGESTIONS (${suggestions.length}) — Can apply with --apply:`);
     for (const s of suggestions) {
-      console.log(`  ID: ${s.id}`);
-      console.log(`  File: ${s.path} : ${s.line}`);
-      console.log(`  Content: ${s.body}`);
-      console.log('');
+      console.log(`  ID: ${s.id} | File: ${s.path} : ${s.line}`);
+      console.log(`  Content: ${s.body}\n`);
     }
   }
 
-  if (bugs.length === 0 && suggestions.length === 0) {
-    console.log('\nAll threads were analysis/confirmations. Nothing actionable.');
-  }
-
-  console.log(`\nSummary: ${bugs.length} bugs, ${suggestions.length} suggestions, ${analyses.length} auto-resolved`);
+  console.log(`Summary: ${bugs.length} bugs, ${suggestions.length} suggestions, ${analyses.length} auto-resolved`);
 }
 
-module.exports = { 
-  cmdList, 
-  cmdResolveAll, 
-  cmdApply, 
-  cmdReviewAll, 
-  cmdReadThread, 
-  cmdBatchAction, 
-  resolveThread, 
-  replyThread 
+/**
+ * Generates a "Resolution Plan" JSON artifact for offline/batch management.
+ */
+function cmdPlan(prNumber) {
+  if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR, { recursive: true });
+
+  const threads = getThreads(prNumber);
+  const plan = threads.map(t => {
+    const firstComment = t.comments.nodes[0];
+    return {
+      id: t.id,
+      status: t.isResolved ? 'resolved' : 'unresolved',
+      path: t.path,
+      line: t.line || t.originalLine,
+      author: firstComment?.author?.login || 'Unknown',
+      category: firstComment ? categorizeComment(firstComment.body) : 'UNKNOWN',
+      body: firstComment?.body || '',
+      proposed_action: null // User/Agent should fill this with 'resolve' or 'reply-and-resolve'
+    };
+  });
+
+  const planPath = path.join(TEMP_DIR, 'resolution_plan.json');
+  fs.writeFileSync(planPath, JSON.stringify(plan, null, 2), 'utf-8');
+  console.log(`Resolution plan exported to: ${planPath}`);
+  console.log('Update the "proposed_action" field in the JSON, then run with --apply-plan.');
+}
+
+/**
+ * Processes a "Resolution Plan" JSON file.
+ *
+ * @param {String} planPath
+ * @param {Boolean} dryRun - If true, logs actions without executing mutations.
+ */
+function cmdApplyPlan(planPath, dryRun = false) {
+  if (!fs.existsSync(planPath)) {
+    console.error(`Error: Plan file not found at ${planPath}`);
+    process.exit(1);
+  }
+
+  const plan = JSON.parse(fs.readFileSync(planPath, 'utf8'));
+  const actions = plan.filter(item => item.proposed_action != null);
+
+  if (actions.length === 0) {
+    console.log('No proposed actions found in plan.');
+    return;
+  }
+
+  console.log(`${dryRun ? '[DRY RUN] ' : ''}Executing ${actions.length} actions from plan...`);
+
+  for (const item of actions) {
+    const action = item.proposed_action.toLowerCase();
+    
+    if (action === 'resolve') {
+      console.log(`- Resolve ${item.id}`);
+      if (!dryRun) resolveThread(item.id);
+    } else if (action === 'reply-and-resolve') {
+      const replyBody = item.reply_body || 'Acknowledged and resolved.';
+      console.log(`- Reply & Resolve ${item.id}: "${replyBody}"`);
+      if (!dryRun) {
+        replyThread(item.id, replyBody);
+        resolveThread(item.id);
+      }
+    } else {
+      console.warn(`Unknown action '${item.proposed_action}' for thread ${item.id}`);
+    }
+  }
+}
+
+/**
+ * Archives the review_temp directory rather than deleting it.
+ */
+function cmdCleanup() {
+  if (!fs.existsSync(TEMP_DIR)) {
+    console.log('Nothing to cleanup.');
+    return;
+  }
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const archivePath = path.resolve(process.cwd(), `review_temp_archive_${timestamp}`);
+  fs.renameSync(TEMP_DIR, archivePath);
+  console.log(`Review temp directory archived to: ${archivePath}`);
+}
+
+module.exports = {
+  cmdList,
+  cmdReadThread,
+  cmdBatchAction,
+  cmdResolveAll,
+  cmdApply,
+  cmdReviewAll,
+  cmdPlan,
+  cmdApplyPlan,
+  cmdCleanup,
+  resolveThread,
+  replyThread
 };

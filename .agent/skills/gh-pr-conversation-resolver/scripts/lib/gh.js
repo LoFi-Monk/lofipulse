@@ -5,7 +5,7 @@
  * without PowerShell shell dependency — PR resolver queries are simpler
  * and don't need complex variable passing.
  */
-const { execSync } = require('child_process');
+const { spawnSync, execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
@@ -13,32 +13,34 @@ const os = require('os');
 /**
  * Executes a GraphQL query/mutation via `gh api graphql`.
  *
- * The query is written to a temp file to avoid shell escaping issues.
- * Unlike the gh-projects helper, this version doesn't need variable
- * support — all values are inlined into the query string because PR
- * review mutations only use simple string IDs.
+ * Uses spawnSync with stdin piping to completely bypass shell escaping
+ * issues on Windows and other platforms.
  *
  * @returns Parsed JSON response, or null on any error.
  */
 function runGraphQL(query) {
-  const tmpFile = path.join(os.tmpdir(), `gh-query-${Date.now()}.graphql`);
+  const result = spawnSync('gh', ['api', 'graphql', '-F', 'query=@-'], {
+    input: query,
+    encoding: 'utf-8',
+    shell: false
+  });
+
+  if (result.status !== 0) {
+    console.error('gh api graphql failed with exit code', result.status);
+    if (result.stderr) console.error(result.stderr);
+    return null;
+  }
+
   try {
-    fs.writeFileSync(tmpFile, query, 'utf-8');
-    const raw = execSync(`gh api graphql -F query=@"${tmpFile}"`, {
-      encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'pipe'],
-    });
-    const data = JSON.parse(raw);
+    const data = JSON.parse(result.stdout);
     if (data.errors) {
       console.error('GraphQL Error:', JSON.stringify(data.errors, null, 2));
       return null;
     }
     return data;
   } catch (err) {
-    console.error('Error executing GraphQL query:', err.stderr || err.message);
+    console.error('Error parsing GraphQL response:', err.message);
     return null;
-  } finally {
-    try { fs.unlinkSync(tmpFile); } catch {}
   }
 }
 
