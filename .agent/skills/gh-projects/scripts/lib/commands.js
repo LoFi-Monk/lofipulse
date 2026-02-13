@@ -253,17 +253,20 @@ function cmdAdd(meta, issueNumber, jsonMode = false) {
   }
   const issueId = JSON.parse(issueRaw).id;
 
-  const res = gh(`project item-add --owner "${meta.owner}" --project-number ${meta.projectNumber} --issue-id ${issueId}`);
+  const res = gh(`project item-add --owner "${meta.owner}" --project-number ${meta.projectNumber} --issue-id ${issueId} --format json`);
 
   if (res) {
     invalidateCache();
+    const itemId = JSON.parse(res).id;
     if (jsonMode) {
-      console.log(JSON.stringify({ success: true, issue: issueNumber }));
+      console.log(JSON.stringify({ success: true, issue: issueNumber, itemId }));
     } else {
       console.log(`Issue #${issueNumber} added to board.`);
     }
+    return itemId;
   } else {
     if (jsonMode) console.log(JSON.stringify({ success: false, error: 'Failed to add issue' }));
+    return null;
   }
 }
 
