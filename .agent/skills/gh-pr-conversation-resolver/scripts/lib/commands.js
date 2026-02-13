@@ -262,7 +262,9 @@ function cmdReviewAll(prNumber, authorFilter = null, categoryFilter = null) {
     return;
   }
 
-  console.log(`\nReviewing ${unresolved.length} unresolved threads for PR #${prNumber}...\n`);
+  if (authorFilter || categoryFilter) {
+    console.log(`Scanning ${unresolved.length} unresolved threads for PR #${prNumber} (filters active)...`);
+  }
 
   const bugs = [];
   const suggestions = [];
@@ -291,6 +293,15 @@ function cmdReviewAll(prNumber, authorFilter = null, categoryFilter = null) {
     else if (category === 'SUGGESTION') suggestions.push(entry);
     else analyses.push(entry);
   }
+
+  const totalFiltered = bugs.length + suggestions.length + analyses.length;
+
+  if (totalFiltered === 0) {
+    console.log('No threads found matching criteria.');
+    return;
+  }
+
+  console.log(`\nReviewing ${totalFiltered} threads for PR #${prNumber}...\n`);
 
   // Auto-resolve ANALYSIS threads
   if (analyses.length > 0) {
