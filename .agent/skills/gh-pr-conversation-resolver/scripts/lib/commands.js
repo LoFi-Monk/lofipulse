@@ -223,6 +223,7 @@ function cmdBatchAction(input, prNumber, jsonMode = false) {
     results.forEach(r => {
       console.log(`Thread ${r.id}: ${r.success ? 'Success' : 'Failed'}`);
       if (r.actions) r.actions.forEach(a => console.log(`  + ${a}`));
+      if (r.error) console.log(`  ! ${r.error}`);
     });
   }
 }
