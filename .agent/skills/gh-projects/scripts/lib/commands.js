@@ -624,7 +624,7 @@ function cmdList(owner, jsonMode = false) {
  *
  * @returns The ID of the created issue.
  */
-function buildTree(node, parentId, meta, jsonMode = false) {
+function buildTree(node, parentNumber, meta, jsonMode = false) {
   const repo = `${meta.owner}/${meta.repo}`;
   const title = node.title || 'Untitled';
   const body = node.body || '';
@@ -656,7 +656,7 @@ function buildTree(node, parentId, meta, jsonMode = false) {
   if (!jsonMode) console.log(`  + Created: #${issueNumber} ${title}`);
 
   // Step 2: Hierarchical Linking & Board Enrollment
-  if (!parentId) {
+  if (!parentNumber) {
     // Root Node (Epic): Add to Project Board
     const itemId = cmdAdd(meta, issue.number, true);
 
@@ -685,7 +685,7 @@ function buildTree(node, parentId, meta, jsonMode = false) {
   } else {
     // Child Node (Story/Task): Link to Parent
     // We use the GraphQL mutation directly to avoid CLI overhead
-    const parentRaw = gh(`issue view ${parentId} --repo "${repo}" --json id`);
+    const parentRaw = gh(`issue view ${parentNumber} --repo "${repo}" --json id`);
     const childRaw = gh(`issue view ${issue.number} --repo "${repo}" --json id`);
 
     if (parentRaw && childRaw) {
