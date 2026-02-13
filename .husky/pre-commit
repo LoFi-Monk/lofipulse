@@ -1,2 +1,11 @@
-pnpm vitest run --changed
+# Get staged files
+staged_files=$(git diff --name-only --cached)
+
+# Skip if no files are staged
+if [ -z "$staged_files" ]; then
+  exit 0
+fi
+
+echo "Running pre-commit tests and lint-staged..."
+pnpm exec vitest related --run $staged_files
 pnpm lint-staged

@@ -1,55 +1,55 @@
 # Lofi Pulse
 
-> [!IMPORTANT]
-> **PROTOCOL:** Before executing ANY task, you MUST consult [.agent/docs/specs/team-workflow.md](file:///c:/ag-workspace/lofipulse/.agent/docs/specs/team-workflow.md). Strict adherence to **State Gates** (Backlog/Ready) is required.
-
 # Current Focus
 
-**Issue #2: Monorepo Foundation**
+**Issue #3: Config Package**
 
-- **Status:** `Ready`
+- **Status:** `In Progress`
 - **Agent:** `Lead Developer`
-- **Next Action:** **Activation** (Move to In Progress -> Create Branch -> Execute).
+- **Next Action:** Finalizing skill upgrades and resuming config logic.
 
 # Recent Decisions
 
-- [x] **Team Protocol:** Adopted `team-workflow.md` with strict State Gates.
-- [x] **Backlog Gate:** Agents CANNOT touch Backlog items.
-- [x] **Ready Gate:** Agents ONLY pick up `Ready` items assigned to them.
-- [x] **Blocked Protocol:** explicit "Stop the Line" procedure with `notify_user`.
+- [x] **Agent-First Skills:** Upgraded `gh-projects` and `gh-pr-resolver` for high-speed agent loops.
 - [x] **Trunk-Based Development:** Linear history, small PRs.
-- [x] **Devin Review:** All merges require explicit user confirmation.
-- [x] **Strict TDD:** Lofi Gate enabled (`strict_tdd = true`).
-- [x] **Project Management:** GitHub Projects (Issue #12) + `task.md`.
 - [x] **Package Manager:** `pnpm` standardized (ADR 0004).
+- [x] **Task Runner:** Turborepo (ADR 0006).
+- [x] **Formatter/Linter:** Biome (ADR 0007).
+- [x] **Secret Detection:** Secretlint integrated via Husky/lint-staged (ADR 0009 - WIP).
+- [x] **Lofi Gate:** Deprecated (ADR 0008).
 
 # Backlog
 
-- [ ] **Issue #2:** Monorepo Foundation (High)
-- [ ] **Issue #3:** Config Package
 - [ ] **Issue #4:** Harness Runtime
-- [ ] **Issue #8:** Configure Secretlint (Blocked)
+- [ ] **Issue #5:** Pi SDK Integration
+- [ ] **Issue #6:** CLI REPL
+- [ ] **Issue #10:** Infra & Gate Cleanup
+
+# In Progress
+
+_None._
+
+# Blocked
+
+_None._
 
 # Completed
 
 - [x] **Issue #1:** Project Init & CI
-- [x] **Issue #9:** Fix YouTube Transcript Bugs
-- [x] **Issue #10:** Infra & Gate Cleanup (pnpm)
-- [x] **Issue #11:** GH PR Conversation Resolver Skill
-- [x] **Issue #12:** Advanced GitHub Projects Spike
-- [x] **Issue #13:** EARS Method Skill
-- [x] **Issue #15:** Mandatory Metadata
-- [x] **Issue #16:** Enhance PR Resolver (Apply Suggestions)
-- [x] **PR #18:** Rewrite PR Resolver to Node.js + REVIEW.md
-- [x] **PR #19:** Rewrite gh-projects to Node.js
+- [x] **Issue #2:** Monorepo Foundation
+- [x] **Issue #8:** Configure Secretlint Pre-commit Hook
+- [x] **Issue #13:** [TEST] Monorepo Structure
+- [x] **Issue #14:** [CODE] Monorepo Structure
+- [x] **Issue #21:** gh-pull-request Skill
+- [x] **Issue #24:** Configure Husky Hooks
 
 # Artifacts
 
-- [Task Board](file:///C:/Users/lofim/.gemini/antigravity/brain/8cb4abb7-604e-41bd-840d-06de299af6a9/task.md)
-- [Implementation Plan](file:///C:/Users/lofim/.gemini/antigravity/brain/8cb4abb7-604e-41bd-840d-06de299af6a9/implementation_plan.md)
+- [Task Board](file:///C:/Users/lofim/.gemini/antigravity/brain/1a19e219-3ec9-4e0e-81e2-bdd4ff4df5a8/task.md)
+- [Walkthrough](file:///C:/Users/lofim/.gemini/antigravity/brain/1a19e219-3ec9-4e0e-81e2-bdd4ff4df5a8/walkthrough.md)
 
 # Notes to future self
 
-- **Issue #8 (Secretlint):** HOLD until Husky setup is complete.
-- **Skill Scripts:** All skills now use Node.js (`resolve.js`, `projects.js`). No more PowerShell deps.
-- **Devin Review:** `REVIEW.md` in project root instructs Devin to reduce noise. Use `resolve.js --review-all` to batch-process threads.
+- **Secretlint:** Whitelists official examples (e.g., `AKIAIOSFODNN7EXAMPLE`). Use real patterns for testing.
+- **PR Tooling:** Always use `--body-file` with `gh-pr.js` to avoid template bypass.
+- **Workflow:** Strictly follow state gates. Issue #8 was unblocked by Issue #24 completion.

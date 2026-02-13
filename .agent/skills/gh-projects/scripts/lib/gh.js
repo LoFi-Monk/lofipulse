@@ -23,6 +23,8 @@ const os = require('os');
 function quotePS(val) {
   if (val === null || val === undefined) return "''";
   const str = String(val);
+  // PowerShell single-quoted strings: '' is an escaped '
+  // To handle multi-line, we just need the single quote wrapper
   return `'${str.replace(/'/g, "''")}'`;
 }
 
@@ -85,8 +87,7 @@ function runGraphQL(query, variables = {}) {
 /**
  * Runs an arbitrary `gh` CLI command and returns trimmed stdout.
  *
- * Returns null on any failure (non-zero exit, stderr), allowing callers
- * to use `if (!result)` as a simple error check.
+ * Log stderr on failure to help debug shell escaping issues.
  */
 function gh(args) {
   try {
@@ -96,9 +97,25 @@ function gh(args) {
       shell: 'powershell.exe',
       stdio: ['pipe', 'pipe', 'pipe'],
     }).trim();
-  } catch {
+  } catch (err) {
+    const stderr = err.stderr ? err.stderr.toString() : '';
+    if (stderr) console.error(`gh CLI Error: ${stderr}`);
     return null;
   }
 }
 
-module.exports = { quotePS, runGraphQL, gh };
+/**
+ * Executes a git command within the project's repository and captures its output.
+ * 
+ * Guarantees the trimmed stdout of the command or throws a descriptive error 
+ * if execution fails, facilitating atomic git operations.
+ */
+function runGit(command) {
+  try {
+    return require('child_process').execSync(`git ${command}`, { encoding: 'utf-8', stdio: 'pipe', shell: 'powershell.exe' }).trim();
+  } catch (err) {
+    throw new Error(`Git failed: ${err.message}`);
+  }
+}
+
+module.exports = { gh, runGraphQL, quotePS, runGit };

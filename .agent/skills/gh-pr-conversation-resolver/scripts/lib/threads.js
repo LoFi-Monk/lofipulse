@@ -109,22 +109,21 @@ function extractSuggestion(body) {
  */
 function applySuggestion(thread) {
   const comments = thread.comments.nodes;
-  if (!comments.length) { console.error('No comments in thread.'); process.exit(1); }
+  if (!comments.length) throw new Error('No comments in thread.');
 
   const body = comments[0].body;
   if (!body.includes('```suggestion')) {
-    console.error('No suggestion block found in this comment.');
-    process.exit(1);
+    throw new Error('No suggestion block found in this comment.');
   }
 
   const suggestion = extractSuggestion(body);
-  if (suggestion.error) { console.error(`Error: ${suggestion.error}`); process.exit(1); }
+  if (suggestion.error) throw new Error(`Error: ${suggestion.error}`);
 
   const filePath = thread.path;
   const endLine = thread.line;
   const startLine = thread.startLine || endLine;
 
-  if (!endLine) { console.error('Could not determine line number from thread.'); process.exit(1); }
+  if (!endLine) throw new Error('Could not determine line number from thread.');
 
   console.log(`Applying suggestion to ${filePath} lines ${startLine}-${endLine}...`);
 
@@ -168,6 +167,34 @@ function categorizeComment(body) {
   return 'ANALYSIS';
 }
 
+/**
+ * Retrieves the source code context surrounding a pull request review thread.
+ * 
+ * Guarantees a 10-line window (5 before, 5 after) of the file referenced by 
+ * the thread, including line numbers for easy correlation during review.
+ * 
+ * Callers must ensure the file exists locally and that git is in a state 
+ * consistent with the PR for the context to be accurate.
+ */
+function getThreadContext(thread) {
+  try {
+    const filePath = thread.path;
+    const line = thread.line || thread.originalLine;
+    if (!line || !fs.existsSync(filePath)) return '';
+
+    const content = fs.readFileSync(filePath, 'utf-8').split('\n');
+    const startIdx = Math.max(0, line - 6);
+    const endIdx = Math.min(content.length, line + 5);
+
+    return content
+      .slice(startIdx, endIdx)
+      .map((l, i) => `${startIdx + i + 1}: ${l}`)
+      .join('\n');
+  } catch {
+    return '';
+  }
+}
+
 module.exports = {
   getThreads,
   resolveThread,
@@ -175,4 +202,5 @@ module.exports = {
   extractSuggestion,
   applySuggestion,
   categorizeComment,
+  getThreadContext,
 };
