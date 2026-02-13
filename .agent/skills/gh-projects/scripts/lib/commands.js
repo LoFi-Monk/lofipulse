@@ -658,7 +658,7 @@ function buildTree(node, parentNumber, meta, jsonMode = false) {
   // Step 2: Hierarchical Linking & Board Enrollment
   if (!parentNumber) {
     // Root Node (Epic): Add to Project Board
-    const itemId = cmdAdd(meta, issue.number, !jsonMode); // Only use jsonMode if outer is NOT jsonMode (to avoid double JSON)
+    const itemId = cmdAdd(meta, issue.number, jsonMode);
 
     // Apply metadata (Priority, Size, Agent) if provided
     if (itemId) {
