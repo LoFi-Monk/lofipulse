@@ -870,20 +870,24 @@ function cmdShip(meta, issueId, title, options, jsonMode = false) {
     // We MUST append this to trigger the board movement
     const prBody = `${bodyContent}\n\nCloses #${issueId}`;
 
-    // 4. Create PR via GH CLI (No --json support in some versions)
-    let cmd = `pr create --title ${quotePS(title)} --body ${quotePS(prBody)}`;
+    // 4. Create PR via GH CLI
+    const tmpBodyFile = path.join(os.tmpdir(), `gh-body-${Date.now()}.md`);
+    fs.writeFileSync(tmpBodyFile, (prBody || ''), 'utf8');
+
+    let cmd = `pr create --title ${quotePS(title)} --body-file ${quotePS(tmpBodyFile)}`;
 
     // Append Metadata Flags if they exist
-    if (options.reviewer) cmd += ` --reviewer "${options.reviewer}"`;
-    if (options.assignee) cmd += ` --assignee "${options.assignee}"`;
-    if (options.label)    cmd += ` --label "${options.label}"`;
+    if (options.reviewer) cmd += ` --reviewer ${quotePS(options.reviewer)}`;
+    if (options.assignee) cmd += ` --assignee ${quotePS(options.assignee)}`;
+    if (options.label)    cmd += ` --label ${quotePS(options.label)}`;
 
     const prUrl = gh(cmd);
+    try { fs.unlinkSync(tmpBodyFile); } catch {}
 
     if (!prUrl) {
       // Proactive check: did it fail because it already exists?
       const branch = runGit('rev-parse --abbrev-ref HEAD');
-      const existingPrRaw = gh(`pr list --head ${branch} --json url,number`);
+      const existingPrRaw = gh(`pr list --head ${quotePS(branch)} --json url,number`);
       if (existingPrRaw) {
         const existingPrs = JSON.parse(existingPrRaw);
         if (existingPrs.length > 0) {
