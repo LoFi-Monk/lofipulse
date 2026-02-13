@@ -15,7 +15,7 @@ const os = require('os');
 const { execSync } = require('child_process');
 const { gh, runGraphQL, quotePS, runGit } = require('./gh');
 
-const CACHE_FILE = path.join('.agent', '.cache_project_schema.json');
+const CACHE_FILE = path.resolve(process.cwd(), '.agent', '.cache_project_schema.json');
 const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 // ─── Shared Helpers ─────────────────────────────────────────────────────────
@@ -471,6 +471,11 @@ function cmdCreateEpic(meta, title, opts, jsonMode = false) {
   // Step 2: Add to Project (uses cached schema via fetchProjectData)
   // We use the mutation directly here to avoid double JSON output from cmdAdd
   const issueRaw = gh(`issue view ${issue.number} --repo "${repo}" --json id`);
+  if (!issueRaw) {
+    if (jsonMode) console.log(JSON.stringify({ success: false, error: `Could not fetch Issue #${issue.number} after creation` }));
+    else console.error(`Error: Could not fetch Issue #${issue.number} after creation.`);
+    process.exit(1);
+  }
   const contentId = JSON.parse(issueRaw).id;
   const addMutation = `
     mutation($projectId: ID!, $contentId: ID!) {

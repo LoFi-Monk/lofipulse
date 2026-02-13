@@ -255,4 +255,3 @@ module.exports = {
   getThreadContext,
   performThreadActions,
 };
-```

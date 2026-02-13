@@ -197,7 +197,8 @@ function cmdBatchAction(jsonString, prNumber, jsonMode = false) {
       }
     }
 
-    results.push({ id: action.id, success: isItemSuccess, actions: actionResults });
+    const hasErrors = actionResults.some(a => a.startsWith('Error'));
+    results.push({ id: action.id, success: isItemSuccess && !hasErrors, actions: actionResults });
   }
 
   if (jsonMode) {

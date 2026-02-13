@@ -7,5 +7,5 @@ if [ -z "$staged_files" ]; then
 fi
 
 echo "Running pre-commit tests and lint-staged..."
-pnpm exec vitest related --run $staged_files
+pnpm exec vitest related --run "$staged_files"
 pnpm lint-staged
