@@ -1,3 +1,6 @@
+const fs = require('fs');
+const path = require('path');
+
 /**
  * High-level PR review commands.
  *
@@ -138,8 +141,21 @@ function cmdReadThread(prNumber, threadId, jsonMode = false) {
  * 
  * Callers should pass a valid JSON array of action objects.
  */
-function cmdBatchAction(jsonString, prNumber, jsonMode = false) {
+function cmdBatchAction(input, prNumber, jsonMode = false) {
   let actions;
+  let jsonString = input;
+
+  // If input is a path to a JSON file, read it
+  if (input.endsWith('.json') && fs.existsSync(path.resolve(process.cwd(), input))) {
+    try {
+      jsonString = fs.readFileSync(path.resolve(process.cwd(), input), 'utf8');
+    } catch (e) {
+      if (jsonMode) console.log(JSON.stringify({ success: false, error: `Failed to read batch file: ${input}` }));
+      else console.error(`Error: Failed to read batch file: ${input}`);
+      process.exit(1);
+    }
+  }
+
   try {
     actions = JSON.parse(jsonString);
   } catch (e) {
@@ -197,12 +213,14 @@ function cmdBatchAction(jsonString, prNumber, jsonMode = false) {
       }
     }
 
-    const hasErrors = actionResults.some(a => a.startsWith('Error'));
-    results.push({ id: action.id, success: isItemSuccess && !hasErrors, actions: actionResults });
+    const hasErrors = !isItemSuccess || actionResults.some(a => a.startsWith('Error'));
+    results.push({ id: action.id, success: !hasErrors, actions: actionResults });
   }
 
+  const overallSuccess = results.every(r => r.success);
+
   if (jsonMode) {
-    console.log(JSON.stringify({ success: true, results }));
+    console.log(JSON.stringify({ success: overallSuccess, results }));
   } else {
     console.log('\n--- Batch Action Results ---');
     results.forEach(r => {
