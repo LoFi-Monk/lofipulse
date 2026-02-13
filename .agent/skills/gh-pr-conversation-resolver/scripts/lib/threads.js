@@ -195,56 +195,6 @@ function getThreadContext(thread) {
   }
 }
 
-/**
- * Applies a series of actions (apply suggestion, reply, resolve) to a thread.
- *
- * @param {object} t The thread object.
- * @param {object} action An object defining actions to take:
- *   - {boolean} applySuggestion: If true, attempts to apply a suggestion.
- *   - {string} reply: If present, posts this string as a reply.
- *   - {boolean} resolve: If true, resolves the thread.
- * @returns {object} An object with success status and action results.
- */
-function performThreadActions(t, action) {
-  const actionResults = [];
-  let isItemSuccess = true;
-
-  // 1. Apply Suggestion
-  if (action.applySuggestion) {
-    try {
-      applySuggestion(t);
-      actionResults.push('Applied suggestion');
-    } catch (e) {
-      actionResults.push(`Error applying suggestion: ${e.message}`);
-      isItemSuccess = false;
-    }
-  }
-
-  // 2. Reply
-  if (action.reply) {
-    try {
-      replyThread(t.id, action.reply);
-      actionResults.push('Posted reply');
-    } catch (e) {
-      actionResults.push(`Error posting reply: ${e.message}`);
-      isItemSuccess = false;
-    }
-  }
-
-  // 3. Resolve (Must be last)
-  if (action.resolve) {
-    try {
-      resolveThread(t.id);
-      actionResults.push('Resolved thread');
-    } catch (e) {
-      actionResults.push(`Error resolving thread: ${e.message}`);
-      isItemSuccess = false;
-    }
-  }
-
-  return { id: t.id, success: isItemSuccess, actions: actionResults };
-}
-
 module.exports = {
   getThreads,
   resolveThread,
@@ -253,5 +203,4 @@ module.exports = {
   applySuggestion,
   categorizeComment,
   getThreadContext,
-  performThreadActions,
 };

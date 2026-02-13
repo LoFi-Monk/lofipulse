@@ -12,11 +12,10 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { execSync } = require('child_process');
 const { gh, runGraphQL, quotePS, runGit } = require('./gh');
 
 const CACHE_FILE = path.resolve(process.cwd(), '.agent', '.cache_project_schema.json');
-const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 // ─── Shared Helpers ─────────────────────────────────────────────────────────
 
@@ -100,16 +99,18 @@ function fetchProjectData(meta) {
  *
  * @returns A GraphQL literal string like `{singleSelectOptionId: "..."}`, or null if the option name is invalid.
  */
-function buildValueGraphQL(field, value) {
+/**
+ * Resolves a field value to the correct GH CLI flag and escaped value.
+ *
+ * @returns { flag, value }
+ */
+function buildFieldCLIArgs(field, value) {
   if (field.options) {
-    // Single-select: resolve human-readable name -> internal option ID
     const option = field.options.find(o => o.name === value);
     if (!option) return null;
-    return `{singleSelectOptionId: "${option.id}"}`;
+    return { flag: '--single-select-option-id', value: option.id };
   }
-  // Text field: inline the value with escaped quotes
-  const safeText = value.replace(/"/g, '\\"');
-  return `{text: "${safeText}"}`;
+  return { flag: '--text', value };
 }
 
 /**
@@ -117,8 +118,8 @@ function buildValueGraphQL(field, value) {
  *
  * @returns true on success, false on failure.
  */
-function updateField(projectId, itemId, fieldId, valueGraphQL) {
-  const res = gh(`project item-edit --id ${itemId} --project-id ${projectId} --field-id ${fieldId} --value ${valueGraphQL}`);
+function updateField(projectId, itemId, fieldId, cliArgs) {
+  const res = gh(`project item-edit --id ${itemId} --project-id ${projectId} --field-id ${fieldId} ${cliArgs.flag} ${quotePS(cliArgs.value)}`);
   return res !== null;
 }
 
@@ -252,8 +253,9 @@ function cmdAdd(meta, issueNumber, jsonMode = false) {
     process.exit(1);
   }
   const issueId = JSON.parse(issueRaw).id;
+  const issueUrl = `https://github.com/${meta.owner}/${meta.repo}/issues/${issueNumber}`;
 
-  const res = gh(`project item-add --owner "${meta.owner}" --project-number ${meta.projectNumber} --issue-id ${issueId} --format json`);
+  const res = gh(`project item-add ${meta.projectNumber} --owner "${meta.owner}" --url "${issueUrl}" --format json`);
 
   if (res) {
     invalidateCache();
@@ -308,8 +310,8 @@ function cmdSet(meta, issueNumber, fieldName, value, jsonMode = false) {
     process.exit(1);
   }
 
-  const valueGraphQL = buildValueGraphQL(field, value);
-  if (!valueGraphQL) {
+  const cliArgs = buildFieldCLIArgs(field, value);
+  if (!cliArgs) {
     const available = field.options.map(o => o.name).join(', ');
     if (jsonMode) {
       console.log(JSON.stringify({ success: false, error: `Option '${value}' not found for '${fieldName}'`, available: field.options.map(o => o.name) }));
@@ -319,7 +321,7 @@ function cmdSet(meta, issueNumber, fieldName, value, jsonMode = false) {
     process.exit(1);
   }
 
-  if (updateField(projectData.id, item.id, field.id, valueGraphQL)) {
+  if (updateField(projectData.id, item.id, field.id, cliArgs)) {
     invalidateCache();
     if (jsonMode) {
       console.log(JSON.stringify({ success: true, issueNumber, fieldName, value }));
@@ -427,16 +429,15 @@ function cmdGroom(meta, issueNumber, groomOpts, jsonMode = false) {
       continue;
     }
 
-    if (updateField(projectData.id, item.id, field.id, valueGraphQL)) {
+    if (updateField(projectData.id, item.id, field.id, cliArgs)) {
       results.push(`${fieldName}: ${value}`);
     } else {
       errors.push(`${fieldName}: failed to set '${value}'`);
     }
   }
 
-  if (errors.length === 0) {
-    invalidateCache();
-  }
+  // Always invalidate after mutations, even partial success
+  invalidateCache();
 
   if (jsonMode) {
     console.log(JSON.stringify({ success: errors.length === 0, results, errors }));
@@ -458,7 +459,8 @@ function cmdCreateEpic(meta, title, opts, jsonMode = false) {
 
   // Step 1: CLI Issue Creation
   const repo = `${meta.owner}/${meta.repo}`;
-  let createCmd = `issue create --repo "${repo}" --title ${quotePS(title)} --body "Epic: ${title}" --assignee "@me"`;
+  const bodyText = `Epic: ${title}`;
+  let createCmd = `issue create --repo "${repo}" --title ${quotePS(title)} --body ${quotePS(bodyText)} --assignee "@me"`;
   if (opts.label) createCmd += ` --label ${quotePS(opts.label)}`;
 
   const issueUrl = gh(createCmd);
@@ -511,10 +513,10 @@ function cmdCreateEpic(meta, title, opts, jsonMode = false) {
       const field = projectData.fields.nodes.find(f => f.name === fieldName);
       if (!field) { errors.push(`${fieldName} field not found`); continue; }
 
-      const vGQL = buildValueGraphQL(field, val);
-      if (!vGQL) { errors.push(`Invalid option '${val}' for ${fieldName}`); continue; }
+      const cliArgs = buildFieldCLIArgs(field, val);
+      if (!cliArgs) { errors.push(`Invalid option '${val}' for ${fieldName}`); continue; }
 
-      if (updateField(projectData.id, itemId, field.id, vGQL)) {
+      if (updateField(projectData.id, itemId, field.id, cliArgs)) {
         results.push(`${fieldName}: ${val}`);
       } else {
         errors.push(`Failed to set ${fieldName}`);
@@ -525,9 +527,7 @@ function cmdCreateEpic(meta, title, opts, jsonMode = false) {
     if (!projectData) errors.push('Failed to fetch project metadata for field updates');
   }
 
-  if (errors.length === 0) {
-    invalidateCache();
-  }
+  invalidateCache();
 
   if (jsonMode) {
     console.log(JSON.stringify({
@@ -633,11 +633,11 @@ function buildTree(node, parentId, meta, jsonMode = false) {
   const tmpBodyFile = path.join(os.tmpdir(), `gh-body-${Date.now()}.md`);
   fs.writeFileSync(tmpBodyFile, body, 'utf8');
 
-  const createCmd = `gh issue create --repo "${repo}" --title ${quotePS(title)} --body-file ${quotePS(tmpBodyFile)} --assignee "@me"`;
+  const createCmd = `issue create --repo "${repo}" --title ${quotePS(title)} --body-file ${quotePS(tmpBodyFile)} --assignee "@me"`;
 
   let issueUrl;
   try {
-    issueUrl = gh(createCmd.replace('gh ', ''));
+    issueUrl = gh(createCmd);
     if (!issueUrl) throw new Error('gh returned null');
   } catch (err) {
     const stderr = err.stderr ? err.stderr.toString() : err.message;
@@ -676,8 +676,8 @@ function buildTree(node, parentId, meta, jsonMode = false) {
 
         const field = projectData.fields.nodes.find(f => f.name === fieldName);
         if (field) {
-          const vGQL = buildValueGraphQL(field, val);
-          if (vGQL) updateField(projectData.id, itemId, field.id, vGQL);
+          const cliArgs = buildFieldCLIArgs(field, val);
+          if (cliArgs) updateField(projectData.id, itemId, field.id, cliArgs);
         }
       }
       invalidateCache();
@@ -881,7 +881,19 @@ function cmdShip(meta, issueId, title, options, jsonMode = false) {
     const prUrl = gh(cmd);
 
     if (!prUrl) {
-      throw new Error("gh pr create failed to return a URL");
+      // Proactive check: did it fail because it already exists?
+      const branch = runGit('rev-parse --abbrev-ref HEAD');
+      const existingPrRaw = gh(`pr list --head ${branch} --json url,number`);
+      if (existingPrRaw) {
+        const existingPrs = JSON.parse(existingPrRaw);
+        if (existingPrs.length > 0) {
+          const ep = existingPrs[0];
+          if (jsonMode) console.log(JSON.stringify({ success: true, prNumber: ep.number, url: ep.url, status: "PR Already Exists" }));
+          else console.log(`PR already exists: ${ep.url}`);
+          return;
+        }
+      }
+      throw new Error("gh pr create failed to return a URL and no existing PR found");
     }
 
     // Parse issue number from URL (e.g., https://github.com/owner/repo/pull/123)
@@ -903,27 +915,9 @@ function cmdShip(meta, issueId, title, options, jsonMode = false) {
     }
 
   } catch (err) {
-    // Handle "PR already exists" gracefully
-    if (err.message && err.message.includes('already exists')) {
-       // Try to find the existing PR URL
-       const branch = runGit('rev-parse --abbrev-ref HEAD');
-       const existingPrRaw = gh(`pr list --head ${branch} --json url,number`);
-       if (existingPrRaw) {
-         try {
-           const existingPr = JSON.parse(existingPrRaw)[0];
-           if (jsonMode) console.log(JSON.stringify({ success: true, prNumber: existingPr.number, url: existingPr.url, status: "PR Already Exists" }));
-           else console.log(`PR already exists: ${existingPr.url}`);
-           return;
-         } catch (e) {}
-       }
-       
-       if (jsonMode) console.log(JSON.stringify({ success: true, status: "PR Already Exists", warning: err.message }));
-       else console.log("PR already exists.");
-    } else {
-       if (jsonMode) console.log(JSON.stringify({ success: false, error: err.message }));
-       else console.error(`Error: ${err.message}`);
-       process.exit(1);
-    }
+    if (jsonMode) console.log(JSON.stringify({ success: false, error: err.message }));
+    else console.error(`Error: ${err.message}`);
+    process.exit(1);
   }
 }
 

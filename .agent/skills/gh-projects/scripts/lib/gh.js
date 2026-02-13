@@ -112,7 +112,7 @@ function gh(args) {
  */
 function runGit(command) {
   try {
-    return require('child_process').execSync(`git ${command}`, { encoding: 'utf-8', stdio: 'pipe' }).trim();
+    return require('child_process').execSync(`git ${command}`, { encoding: 'utf-8', stdio: 'pipe', shell: 'powershell.exe' }).trim();
   } catch (err) {
     throw new Error(`Git failed: ${err.message}`);
   }

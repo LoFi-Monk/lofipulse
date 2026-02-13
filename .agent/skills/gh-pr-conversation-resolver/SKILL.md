@@ -70,13 +70,10 @@ node .agent/skills/gh-pr-conversation-resolver/scripts/resolve.js --resolve-all
 
 Applies the `suggestion` block from the thread's first comment to the local file.
 
+````bash
 ```bash
 node .agent/skills/gh-pr-conversation-resolver/scripts/resolve.js --apply "THREAD_ID"
-```
-
-```bash
-node .agent/skills/gh-pr-conversation-resolver/scripts/resolve.js --apply "THREAD_ID"
-```
+````
 
 ## Agent Strategy for Devin Reviews
 
