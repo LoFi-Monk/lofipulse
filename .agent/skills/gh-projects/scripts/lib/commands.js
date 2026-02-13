@@ -118,21 +118,20 @@ function buildValueGraphQL(field, value) {
  * @returns true on success, false on failure.
  */
 function updateField(projectId, itemId, fieldId, valueGraphQL) {
-  const mutation = `
-    mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!) {
-      updateProjectV2ItemFieldValue(input: {
-        projectId: $projectId
-        itemId: $itemId
-        fieldId: $fieldId
-        value: ${valueGraphQL}
-      }) {
-        projectV2Item { id }
-      }
-    }
-  `;
+  const res = gh(`project item-edit --id ${itemId} --project-id ${projectId} --field-id ${fieldId} --value ${valueGraphQL}`);
+  return res !== null;
+}
 
-  const result = runGraphQL(mutation, { projectId, itemId, fieldId });
-  return !!result?.data?.updateProjectV2ItemFieldValue?.projectV2Item?.id;
+/**
+ * Deletes the project metadata cache file to ensure subsequent commands fetch
+ * fresh data after mutations.
+ */
+function invalidateCache() {
+  try {
+    if (fs.existsSync(CACHE_FILE)) fs.unlinkSync(CACHE_FILE);
+  } catch (e) {
+    // Ignore unlink errors
+  }
 }
 
 // ─── Commands ───────────────────────────────────────────────────────────────
@@ -229,7 +228,7 @@ function cmdPulse(meta, jsonMode = false) {
 
   // Render as fixed-width ASCII table
   const cols = ['ID', 'Title', 'Status', 'Priority', 'Labels'];
-  const widths = cols.map(c => Math.max(c.length, ...rows.map(r => String(r[c]).length)));
+  const widths = cols.map(c => Math.max(c.length, ...displayRows.map(r => String(r[c]).length)));
 
   const header = cols.map((c, i) => c.padEnd(widths[i])).join('  ');
   const separator = widths.map(w => '-'.repeat(w)).join('  ');
@@ -254,31 +253,17 @@ function cmdAdd(meta, issueNumber, jsonMode = false) {
   }
   const issueId = JSON.parse(issueRaw).id;
 
-  const query = `
-    mutation($projectId: ID!, $contentId: ID!) {
-      addProjectV2ItemById(input: {projectId: $projectId, contentId: $contentId}) {
-        item { id }
-      }
-    }
-  `;
+  const res = gh(`project item-add --owner "${meta.owner}" --project-number ${meta.projectNumber} --issue-id ${issueId}`);
 
-  const result = runGraphQL(query, { projectId: meta.projectId, contentId: issueId });
-  const itemId = result?.data?.addProjectV2ItemById?.item?.id;
-
-  if (itemId) {
+  if (res) {
+    invalidateCache();
     if (jsonMode) {
-      console.log(JSON.stringify({ success: true, itemId }));
+      console.log(JSON.stringify({ success: true, issue: issueNumber }));
     } else {
-      console.log(`Added Issue #${issueNumber} to Project #${meta.projectNumber}`);
+      console.log(`Issue #${issueNumber} added to board.`);
     }
-    return itemId;
   } else {
-    if (jsonMode) {
-      console.log(JSON.stringify({ success: false, error: 'Failed to add item to project' }));
-    } else {
-      console.error('Failed to add item.');
-    }
-    process.exit(1);
+    if (jsonMode) console.log(JSON.stringify({ success: false, error: 'Failed to add issue' }));
   }
 }
 
@@ -332,6 +317,7 @@ function cmdSet(meta, issueNumber, fieldName, value, jsonMode = false) {
   }
 
   if (updateField(projectData.id, item.id, field.id, valueGraphQL)) {
+    invalidateCache();
     if (jsonMode) {
       console.log(JSON.stringify({ success: true, issueNumber, fieldName, value }));
     } else {
@@ -445,6 +431,10 @@ function cmdGroom(meta, issueNumber, groomOpts, jsonMode = false) {
     }
   }
 
+  if (errors.length === 0) {
+    invalidateCache();
+  }
+
   if (jsonMode) {
     console.log(JSON.stringify({ success: errors.length === 0, results, errors }));
   } else {
@@ -453,11 +443,11 @@ function cmdGroom(meta, issueNumber, groomOpts, jsonMode = false) {
 }
 
 /**
- * Atomically creates a root issue and enrolls it into the project board with 
+ * Atomically creates a root issue and enrolls it into the project board with
  * initial metadata in one pass.
- * 
- * Guarantees that if the issue creation succeeds, the metadata (Priority, 
- * Size, Agent) will be applied sequentially. Returns the new issue number 
+ *
+ * Guarantees that if the issue creation succeeds, the metadata (Priority,
+ * Size, Agent) will be applied sequentially. Returns the new issue number
  * and URL.
  */
 function cmdCreateEpic(meta, title, opts, jsonMode = false) {
@@ -467,13 +457,13 @@ function cmdCreateEpic(meta, title, opts, jsonMode = false) {
   const repo = `${meta.owner}/${meta.repo}`;
   let createCmd = `issue create --repo "${repo}" --title ${quotePS(title)} --body "Epic: ${title}" --assignee "@me"`;
   if (opts.label) createCmd += ` --label ${quotePS(opts.label)}`;
-  
+
   const issueUrl = gh(createCmd);
   if (!issueUrl) {
     if (jsonMode) console.log(JSON.stringify({ success: false, error: 'gh issue create failed' }));
     process.exit(1);
   }
-  
+
   // Parse issue number from URL (e.g., https://github.com/owner/repo/issues/123)
   const issueNumber = parseInt(issueUrl.split('/').pop(), 10);
   const issue = { number: issueNumber, url: issueUrl };
@@ -525,6 +515,10 @@ function cmdCreateEpic(meta, title, opts, jsonMode = false) {
   } else {
     if (!itemId) errors.push('Failed to add item to project board');
     if (!projectData) errors.push('Failed to fetch project metadata for field updates');
+  }
+
+  if (errors.length === 0) {
+    invalidateCache();
   }
 
   if (jsonMode) {
@@ -587,6 +581,7 @@ function cmdLinkChild(meta, parentNumber, childNumber, jsonMode = false) {
 
   const result = runGraphQL(mutation, { parentId, childId });
   if (result?.data?.addSubIssue?.issue?.id) {
+    invalidateCache();
     if (jsonMode) {
       console.log(JSON.stringify({ success: true, parentNumber, childNumber }));
     } else {
@@ -631,22 +626,18 @@ function buildTree(node, parentId, meta, jsonMode = false) {
   fs.writeFileSync(tmpBodyFile, body, 'utf8');
 
   const createCmd = `gh issue create --repo "${repo}" --title ${quotePS(title)} --body-file ${quotePS(tmpBodyFile)} --assignee "@me"`;
-  
+
   let issueUrl;
   try {
-    issueUrl = execSync(createCmd, {
-      encoding: 'utf-8',
-      shell: 'powershell.exe',
-      stdio: ['pipe', 'pipe', 'pipe'],
-    }).trim();
+    issueUrl = gh(createCmd.replace('gh ', ''));
+    if (!issueUrl) throw new Error('gh returned null');
   } catch (err) {
     const stderr = err.stderr ? err.stderr.toString() : err.message;
     if (jsonMode) {
       console.log(JSON.stringify({ success: false, error: `Failed to create issue: ${title}`, stderr }));
     } else {
-      console.error(`Error: Failed to create issue ${title}: ${stderr}`);
+      console.error(`Error creating issue ${title}: ${stderr}`);
     }
-    try { fs.unlinkSync(tmpBodyFile); } catch {}
     process.exit(1);
   }
   try { fs.unlinkSync(tmpBodyFile); } catch {}
@@ -681,6 +672,7 @@ function buildTree(node, parentId, meta, jsonMode = false) {
           if (vGQL) updateField(projectData.id, itemId, field.id, vGQL);
         }
       }
+      invalidateCache();
     }
   } else {
     // Child Node (Story/Task): Link to Parent
@@ -696,7 +688,8 @@ function buildTree(node, parentId, meta, jsonMode = false) {
           addSubIssue(input: {issueId: $parentId, subIssueId: $childId}) { issue { id } }
         }
       `;
-      runGraphQL(mutation, { parentId: pId, childId: cId });
+      const res = runGraphQL(mutation, { parentId: pId, childId: cId });
+      if (res) invalidateCache();
     }
   }
 
@@ -711,11 +704,11 @@ function buildTree(node, parentId, meta, jsonMode = false) {
 }
 
 /**
- * Recursively generates a feature hierarchy (Epic -> Story -> Task) from 
+ * Recursively generates a feature hierarchy (Epic -> Story -> Task) from
  * a structured JSON blueprint.
- * 
- * Guarantees serial creation of issues to preserve hierarchy through parent 
- * linking. Each node in the blueprint can define its own title and 
+ *
+ * Guarantees serial creation of issues to preserve hierarchy through parent
+ * linking. Each node in the blueprint can define its own title and
  * sub-issue children.
  */
 function cmdBlueprint(meta, blueprintJson, jsonMode = false) {
@@ -747,8 +740,8 @@ function cmdBlueprint(meta, blueprintJson, jsonMode = false) {
 
 /**
  * Recursively fetches and displays the hierarchy of an issue and its sub-issues.
- * 
- * Guarantees a sanitized JSON or formatted tree output of the issue 
+ *
+ * Guarantees a sanitized JSON or formatted tree output of the issue
  * relationships, supporting up to 2 levels of nesting.
  */
 function cmdReadTree(meta, issueNumber, jsonMode = false) {
@@ -805,7 +798,7 @@ function cmdReadTree(meta, issueNumber, jsonMode = false) {
       state: node.state.toLowerCase(),
     };
     if (node.body !== undefined) clean.body = node.body;
-    
+
     if (node.subIssues?.nodes?.length > 0) {
       clean.children = node.subIssues.nodes.map(sanitize);
     }
@@ -830,14 +823,14 @@ function cmdReadTree(meta, issueNumber, jsonMode = false) {
 }
 
 /**
- * Atomically pushes the current branch and creates a linked Pull Request 
+ * Atomically pushes the current branch and creates a linked Pull Request
  * for a specific issue.
- * 
- * Guarantees that the PR body contains the "Closes #ID" keyword to automate 
- * project board card movement. Automatically loads pull_request_template.md 
+ *
+ * Guarantees that the PR body contains the "Closes #ID" keyword to automate
+ * project board card movement. Automatically loads pull_request_template.md
  * if present.
- * 
- * Callers must ensure they are on a branch with changes pushed-ready for 
+ *
+ * Callers must ensure they are on a branch with changes pushed-ready for
  * origin.
  */
 function cmdShip(meta, issueId, title, options, jsonMode = false) {
@@ -846,7 +839,7 @@ function cmdShip(meta, issueId, title, options, jsonMode = false) {
 
     // 1. Git Push (Existing)
     runGit('push -u origin HEAD');
-    
+
     // 2. Determine Body Content
     let bodyContent = options.body;
 
@@ -861,7 +854,7 @@ function cmdShip(meta, issueId, title, options, jsonMode = false) {
         // Ignore read errors, fall back
       }
     }
-    
+
     // Fallback if still empty
     if (!bodyContent) bodyContent = "Automated PR";
 
@@ -871,14 +864,14 @@ function cmdShip(meta, issueId, title, options, jsonMode = false) {
 
     // 4. Create PR via GH CLI (No --json support in some versions)
     let cmd = `pr create --title ${quotePS(title)} --body ${quotePS(prBody)}`;
-    
+
     // Append Metadata Flags if they exist
     if (options.reviewer) cmd += ` --reviewer "${options.reviewer}"`;
     if (options.assignee) cmd += ` --assignee "${options.assignee}"`;
     if (options.label)    cmd += ` --label "${options.label}"`;
 
     const prUrl = gh(cmd);
-    
+
     if (!prUrl) {
       throw new Error("gh pr create failed to return a URL");
     }
@@ -887,11 +880,11 @@ function cmdShip(meta, issueId, title, options, jsonMode = false) {
     const prNumber = parseInt(prUrl.split('/').pop(), 10);
 
     // 4. Output
-    const result = { 
-      success: true, 
-      prNumber, 
-      url: prUrl, 
-      status: "Shipped & Linked" 
+    const result = {
+      success: true,
+      prNumber,
+      url: prUrl,
+      status: "Shipped & Linked"
     };
 
     if (jsonMode) {
@@ -905,7 +898,8 @@ function cmdShip(meta, issueId, title, options, jsonMode = false) {
     // Handle "PR already exists" gracefully
     if (err.message && err.message.includes('already exists')) {
        // Try to find the existing PR URL
-       const existingPrRaw = gh(`pr list --head HEAD --json url,number`);
+       const branch = runGit('rev-parse --abbrev-ref HEAD');
+       const existingPrRaw = gh(`pr list --head ${branch} --json url,number`);
        if (existingPrRaw) {
          try {
            const existingPr = JSON.parse(existingPrRaw)[0];

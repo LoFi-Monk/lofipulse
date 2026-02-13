@@ -87,8 +87,8 @@ function main() {
   } else if (opts.batch) {
     cmdBatchAction(opts.batch, prNumber, opts.json);
   } else if (opts.resolve) {
-    resolveThread(opts.resolve);
     if (opts.reply) replyThread(opts.resolve, opts.reply);
+    resolveThread(opts.resolve);
   } else if (opts.resolveAll) {
     cmdResolveAll(prNumber);
   } else if (opts.reviewAll) {

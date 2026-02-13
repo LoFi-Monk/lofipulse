@@ -22,7 +22,6 @@ function parseArgs() {
     if (arg === '--groom') { opts.groom = true; continue; }
     if (arg === '--link-child') { opts.linkChild = true; continue; }
     if (arg === '--json') { opts.json = true; continue; }
-    if (arg === '--blueprint') { opts.blueprint = args[++i]; continue; }
     if (arg === '--ship') { opts.ship = true; continue; }
 
     // Flags with values
@@ -47,6 +46,7 @@ function parseArgs() {
       if (arg === '--agent') { opts.agent = args[++i]; continue; }
       if (arg === '--label') { opts.label = args[++i]; continue; }
       if (arg === '--status') { opts.status = args[++i]; continue; }
+      if (arg === '--blueprint') { opts.blueprint = args[++i]; continue; }
     }
   }
 

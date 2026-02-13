@@ -162,6 +162,7 @@ function cmdBatchAction(jsonString, prNumber, jsonMode = false) {
     }
 
     const actionResults = [];
+    let isItemSuccess = true;
 
     // 1. Apply Suggestion
     if (action.applySuggestion) {
@@ -170,6 +171,7 @@ function cmdBatchAction(jsonString, prNumber, jsonMode = false) {
         actionResults.push('Applied suggestion');
       } catch (e) {
         actionResults.push(`Error applying suggestion: ${e.message}`);
+        isItemSuccess = false;
       }
     }
 
@@ -180,6 +182,7 @@ function cmdBatchAction(jsonString, prNumber, jsonMode = false) {
         actionResults.push('Posted reply');
       } catch (e) {
         actionResults.push(`Error posting reply: ${e.message}`);
+        isItemSuccess = false;
       }
     }
 
@@ -190,10 +193,11 @@ function cmdBatchAction(jsonString, prNumber, jsonMode = false) {
         actionResults.push('Resolved thread');
       } catch (e) {
         actionResults.push(`Error resolving thread: ${e.message}`);
+        isItemSuccess = false;
       }
     }
 
-    results.push({ id: action.id, success: true, actions: actionResults });
+    results.push({ id: action.id, success: isItemSuccess, actions: actionResults });
   }
 
   if (jsonMode) {
