@@ -4,12 +4,13 @@
 
 **Issue #3: Config Package**
 
-- **Status:** `Ready`
+- **Status:** `In Progress`
 - **Agent:** `Lead Developer`
-- **Next Action:** Activate and pick up Issue #3.
+- **Next Action:** Finalizing skill upgrades and resuming config logic.
 
 # Recent Decisions
 
+- [x] **Agent-First Skills:** Upgraded `gh-projects` and `gh-pr-resolver` for high-speed agent loops.
 - [x] **Trunk-Based Development:** Linear history, small PRs.
 - [x] **Package Manager:** `pnpm` standardized (ADR 0004).
 - [x] **Task Runner:** Turborepo (ADR 0006).

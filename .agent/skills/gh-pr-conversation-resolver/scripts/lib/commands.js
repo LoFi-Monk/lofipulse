@@ -15,8 +15,11 @@ const {
 } = require('./threads');
 
 /**
- * Lists review threads with status, location, and content preview.
- * Shows only unresolved threads unless --all is also passed.
+ * Provides a summarized or machine-readable list of pull request review threads.
+ * 
+ * Guarantees a consistent JSON schema when jsonMode is enabled, including 
+ * code snippets and categorization, allowing agents to ingest the entire 
+ * review state in a single pass.
  */
 function cmdList(prNumber, showAll, jsonMode = false) {
   const threads = getThreads(prNumber);
@@ -78,7 +81,12 @@ function cmdList(prNumber, showAll, jsonMode = false) {
   if (count === 0) console.log('No threads found matching criteria.');
 }
 
-/** Fetches and displays a single thread with full context. */
+/**
+ * Retrieves detailed information and full source context for a specific review thread.
+ * 
+ * Guarantees the inclusion of the latest comment and surrounding code block 
+ * for the target thread, enabling deep analysis of a single feedback point.
+ */
 function cmdReadThread(prNumber, threadId, jsonMode = false) {
   const threads = getThreads(prNumber);
   const t = threads.find(thread => thread.id === threadId);
@@ -121,7 +129,15 @@ function cmdReadThread(prNumber, threadId, jsonMode = false) {
   }
 }
 
-/** Executes multiple actions (apply, reply, resolve) atomically across threads. */
+/**
+ * Executes a sequence of operations (Apply, Reply, Resolve) across multiple 
+ * review threads in a single atomic cycle.
+ * 
+ * Guarantees that resolution always happens last to ensure preceding 
+ * replies or suggestion applications are processed before the thread is closed.
+ * 
+ * Callers should pass a valid JSON array of action objects.
+ */
 function cmdBatchAction(jsonString, prNumber, jsonMode = false) {
   let actions;
   try {

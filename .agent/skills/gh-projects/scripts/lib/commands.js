@@ -452,7 +452,14 @@ function cmdGroom(meta, issueNumber, groomOpts, jsonMode = false) {
   }
 }
 
-/** Atomic Epic Creation Command (Multi-Step Optimization) */
+/**
+ * Atomically creates a root issue and enrolls it into the project board with 
+ * initial metadata in one pass.
+ * 
+ * Guarantees that if the issue creation succeeds, the metadata (Priority, 
+ * Size, Agent) will be applied sequentially. Returns the new issue number 
+ * and URL.
+ */
 function cmdCreateEpic(meta, title, opts, jsonMode = false) {
   if (!jsonMode) console.log(`Creating Epic: ${title}...`);
 
@@ -703,7 +710,14 @@ function buildTree(node, parentId, meta, jsonMode = false) {
   return issue.number;
 }
 
-/** Executes a full feature hierarchy from a JSON blueprint. */
+/**
+ * Recursively generates a feature hierarchy (Epic -> Story -> Task) from 
+ * a structured JSON blueprint.
+ * 
+ * Guarantees serial creation of issues to preserve hierarchy through parent 
+ * linking. Each node in the blueprint can define its own title and 
+ * sub-issue children.
+ */
 function cmdBlueprint(meta, blueprintJson, jsonMode = false) {
   let root;
   try {
@@ -732,8 +746,10 @@ function cmdBlueprint(meta, blueprintJson, jsonMode = false) {
 }
 
 /**
- * Fetches the full hierarchy (Epic -> Stories -> Tasks) of an issue.
- * Supports up to 2 levels of nesting.
+ * Recursively fetches and displays the hierarchy of an issue and its sub-issues.
+ * 
+ * Guarantees a sanitized JSON or formatted tree output of the issue 
+ * relationships, supporting up to 2 levels of nesting.
  */
 function cmdReadTree(meta, issueNumber, jsonMode = false) {
   const query = `
@@ -814,8 +830,15 @@ function cmdReadTree(meta, issueNumber, jsonMode = false) {
 }
 
 /**
- * Atomic Push + PR Creation Command (Linking to Issue).
- * Automatically links the PR to the Issue ID via "Closes #ID".
+ * Atomically pushes the current branch and creates a linked Pull Request 
+ * for a specific issue.
+ * 
+ * Guarantees that the PR body contains the "Closes #ID" keyword to automate 
+ * project board card movement. Automatically loads pull_request_template.md 
+ * if present.
+ * 
+ * Callers must ensure they are on a branch with changes pushed-ready for 
+ * origin.
  */
 function cmdShip(meta, issueId, title, options, jsonMode = false) {
   try {

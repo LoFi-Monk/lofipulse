@@ -169,10 +169,13 @@ function categorizeComment(body) {
 }
 
 /**
- * Reads the file context around a thread's line.
- * Extracts 5 lines before and 5 lines after.
- *
- * @returns {string} Code snippet with line numbers.
+ * Retrieves the source code context surrounding a pull request review thread.
+ * 
+ * Guarantees a 10-line window (5 before, 5 after) of the file referenced by 
+ * the thread, including line numbers for easy correlation during review.
+ * 
+ * Callers must ensure the file exists locally and that git is in a state 
+ * consistent with the PR for the context to be accurate.
  */
 function getThreadContext(thread) {
   try {

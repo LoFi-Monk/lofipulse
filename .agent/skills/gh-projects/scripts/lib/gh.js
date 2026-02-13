@@ -104,7 +104,12 @@ function gh(args) {
   }
 }
 
-/** Executes a raw git command and returns the trimmed output. */
+/**
+ * Executes a git command within the project's repository and captures its output.
+ * 
+ * Guarantees the trimmed stdout of the command or throws a descriptive error 
+ * if execution fails, facilitating atomic git operations.
+ */
 function runGit(command) {
   try {
     return require('child_process').execSync(`git ${command}`, { encoding: 'utf-8', stdio: 'pipe' }).trim();
