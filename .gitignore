@@ -145,6 +145,7 @@ vite.config.ts.timestamp-*
 verification_history.md
 .agent/current-issue.md
 .agent/temp-validation-*.svg
+.agent/.cache*
 
 # OS Files
 .DS_Store
